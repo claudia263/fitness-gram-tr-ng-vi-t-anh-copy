@@ -4,6 +4,7 @@ import { motion, useReducedMotion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import LoginVisual from "@/components/fg/LoginVisual";
 import LoginForm from "@/components/fg/LoginForm";
+import StaffLoginForm from "@/components/fg/StaffLoginForm";
 
 function normalize(str) {
   return String(str || "")
@@ -20,6 +21,7 @@ export default function Login() {
   const [leaving, setLeaving] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [mode, setMode] = useState("parent");
 
   const handleSubmit = async (name) => {
     setBusy(true);
@@ -52,7 +54,34 @@ export default function Login() {
         className="absolute inset-0"
       >
         <LoginVisual formOpen>
-          <LoginForm onSubmit={handleSubmit} busy={busy} error={error} />
+          <div className="w-full max-w-sm mx-auto">
+            <div className="flex gap-1 p-1 rounded-2xl mb-4" style={{ background: "rgba(255,255,255,0.12)" }}>
+              {[
+                { key: "parent", label: "Phụ huynh" },
+                { key: "staff", label: "Cán bộ nhà trường" },
+              ].map((t) => (
+                <button
+                  key={t.key}
+                  type="button"
+                  onClick={() => setMode(t.key)}
+                  className="flex-1 h-10 rounded-xl text-sm font-semibold transition-colors"
+                  style={
+                    mode === t.key
+                      ? { background: "#F9DD0E", color: "#26275D" }
+                      : { background: "transparent", color: "rgba(255,255,255,0.75)" }
+                  }
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            {mode === "parent" ? (
+              <LoginForm onSubmit={handleSubmit} busy={busy} error={error} />
+            ) : (
+              <StaffLoginForm />
+            )}
+          </div>
         </LoginVisual>
       </motion.div>
     </div>

@@ -57,11 +57,16 @@ export async function resolveStudentsByIds(ids) {
 
 export function useStudentBundle(studentId) {
   const [data, setData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(!!studentId);
   const [error, setError] = useState(null);
 
   const reload = useCallback(async () => {
-    if (!studentId) return;
+    if (!studentId) {
+      // Không có học sinh đang chọn (vd cán bộ nhà trường) → không tải, không treo loading
+      setData(null);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {

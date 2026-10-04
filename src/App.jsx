@@ -12,6 +12,9 @@ import { RoleProvider } from '@/lib/RoleContext';
 import { StudentProvider } from '@/lib/StudentContext';
 import AppLayout from '@/components/fg/AppLayout';
 import Login from '@/pages/Login';
+import Register from '@/pages/Register';
+import ForgotPassword from '@/pages/ForgotPassword';
+import ResetPassword from '@/pages/ResetPassword';
 import LookupHome from '@/pages/LookupHome';
 import Results from '@/pages/Results';
 import History from '@/pages/History';
@@ -40,6 +43,9 @@ const AuthenticatedApp = () => {
   return (
     <Routes>
       <Route path="/login" element={<Login />} />
+      <Route path="/register" element={<Register />} />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
 
       <Route element={<ProtectedRoute />}>
         <Route element={<AppLayout />}>

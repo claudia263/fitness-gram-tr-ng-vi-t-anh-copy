@@ -1,6 +1,7 @@
-import { useNavigate } from "react-router-dom";
+import { Navigate, useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { useStudent } from "@/lib/StudentContext";
+import { useRole } from "@/lib/RoleContext";
 import PageTransition from "@/components/fg/PageTransition";
 import BrandLogo from "@/components/fg/BrandLogo";
 import StudentResultsView from "@/components/fg/StudentResultsView";
@@ -13,7 +14,13 @@ export default function LookupHome() {
   const reduce = useReducedMotion();
   const ease = [0.22, 1, 0.36, 1];
   const { students, activeStudent, setActiveStudent, loadingStudents } = useStudent();
+  const { role } = useRole();
   const navigate = useNavigate();
+
+  // Cán bộ nhà trường không dùng trang tra cứu của phụ huynh → vào thẳng trang quản trị
+  if (role === "admin") {
+    return <Navigate to="/admin" replace />;
+  }
 
   if (loadingStudents) {
     return (
