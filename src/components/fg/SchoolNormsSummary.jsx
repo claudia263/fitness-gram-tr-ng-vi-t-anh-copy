@@ -1,6 +1,7 @@
+import PacerWorldDistribution from "@/components/fg/PacerWorldDistribution";
+
 export default function SchoolNormsSummary({ summary }) {
   const { total, hfz, pacer, bmi } = summary;
-  const maxBand = Math.max(1, ...Object.values(pacer.bands));
 
   return (
     <div className="space-y-4">
@@ -32,23 +33,7 @@ export default function SchoolNormsSummary({ summary }) {
           </div>
         </div>
 
-        <div className="fg-card p-5">
-          <h3 className="font-bold text-navy mb-1">Phân bố bách phân vị PACER thế giới</h3>
-          <p className="text-xs text-muted-foreground mb-4">{pacer.withData} học sinh có đủ dữ liệu quy đổi PACER 20m</p>
-          <div className="space-y-3">
-            {Object.entries(pacer.bands).map(([band, count]) => (
-              <div key={band}>
-                <div className="flex items-center justify-between text-sm mb-1">
-                  <span className="font-semibold text-navy tabular-nums">{band === "<20" ? "< 20" : band === ">80" ? "> 80" : band.replace("-", "–")}</span>
-                  <span className="text-xs text-muted-foreground tabular-nums">{count} học sinh</span>
-                </div>
-                <div className="h-2.5 rounded-full overflow-hidden" style={{ background: "#F4F5F8" }}>
-                  <div className="h-full rounded-full" style={{ width: `${(count / maxBand) * 100}%`, background: "#26275D" }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
+        <PacerWorldDistribution pacer={pacer} />
       </div>
 
       <div className="fg-card p-5">
