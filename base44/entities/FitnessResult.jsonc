@@ -18,6 +18,15 @@
       "type": "number",
       "description": "PACER level"
     },
+    "pacer_type": {
+      "type": "string",
+      "enum": [
+        "15m",
+        "20m"
+      ],
+      "default": "15m",
+      "description": "Lo\u1ea1i PACER: 15m (kh\u1ed1i 1\u20135) ho\u1eb7c 20m (kh\u1ed1i 6 tr\u1edf l\u00ean)"
+    },
     "sit_and_reach_cm": {
       "type": "number",
       "description": "Sit & Reach (cm)"

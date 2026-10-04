@@ -4,7 +4,9 @@ import { calculateBMI, calculateAgeMonths, nutritionalStatusFromZScore, formatPl
 import { pacerLevelFromLaps, pacerLapsFromLevel, getPacerLevelInfo, pacerDistanceFromLaps } from "@/lib/pacerReference";
 import PageTransition from "@/components/fg/PageTransition";
 import BrandLogo from "@/components/fg/BrandLogo";
-import { Save, Loader2, CheckCircle2, AlertCircle, ClipboardList, Users, Calendar, History, Download } from "lucide-react";
+import SchoolNormsTab from "@/components/fg/SchoolNormsTab";
+import { defaultPacerType } from "@/lib/fitnessNorms";
+import { Save, Loader2, CheckCircle2, AlertCircle, ClipboardList, Users, Calendar, History, Download, Target } from "lucide-react";
 
 export default function TeacherDashboard() {
   const [tab, setTab] = useState("input");
@@ -47,6 +49,7 @@ export default function TeacherDashboard() {
     { key: "students", label: "Học sinh", icon: Users },
     { key: "sessions", label: "Đợt kiểm tra", icon: Calendar },
     { key: "history", label: "Lịch sử", icon: History },
+    { key: "norms", label: "So sánh chuẩn toàn trường", icon: Target },
   ];
 
   return (
@@ -101,6 +104,8 @@ export default function TeacherDashboard() {
           <StudentsTab students={students} />
         ) : tab === "sessions" ? (
           <SessionsTab sessions={sessions} />
+        ) : tab === "norms" ? (
+          <SchoolNormsTab classes={classes} sessions={sessions} />
         ) : (
           <HistoryTab students={students} sessions={sessions} />
         )}
@@ -113,6 +118,7 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
   const [form, setForm] = useState({
     pacer_laps: "",
     pacer_level: "",
+    pacer_type: "",
     sit_and_reach_cm: "",
     pushup_count: "",
     plank_seconds: "",
@@ -147,6 +153,7 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
       setForm({
         pacer_laps: f.pacer_laps != null ? String(f.pacer_laps) : "",
         pacer_level: f.pacer_level != null ? String(f.pacer_level) : "",
+        pacer_type: f.pacer_type || "",
         sit_and_reach_cm: f.sit_and_reach_cm != null ? String(f.sit_and_reach_cm) : "",
         pushup_count: f.pushup_count != null ? String(f.pushup_count) : "",
         plank_seconds: f.plank_seconds != null ? String(f.plank_seconds) : "",
@@ -199,6 +206,7 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
         session_id: selectedSession,
         pacer_laps: toNum(form.pacer_laps),
         pacer_level: toNum(form.pacer_level),
+        pacer_type: form.pacer_type || defaultPacerType(student?.grade),
         sit_and_reach_cm: toNum(form.sit_and_reach_cm),
         pushup_count: toNum(form.pushup_count),
         plank_seconds: toNum(form.plank_seconds),
@@ -347,7 +355,18 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
             <NumField label="Sit & Reach (cm)" value={form.sit_and_reach_cm} onChange={(v) => set("sit_and_reach_cm", v)} error={errors.sit_and_reach_cm} />
             <NumField label="Push-up (lần)" value={form.pushup_count} onChange={(v) => set("pushup_count", v)} error={errors.pushup_count} />
             <NumField label="Plank (giây)" value={form.plank_seconds} onChange={(v) => set("plank_seconds", v)} error={errors.plank_seconds} hint={form.plank_seconds ? `= ${formatPlankTime(Number(form.plank_seconds))}` : null} />
-            <div />
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-semibold text-navy">Loại PACER</label>
+              <select
+                value={form.pacer_type || defaultPacerType(student?.grade)}
+                onChange={(e) => set("pacer_type", e.target.value)}
+                className="fg-input h-11 px-3 text-sm font-semibold text-navy bg-white"
+              >
+                <option value="15m">15m (khối 1–5)</option>
+                <option value="20m">20m (khối 6+)</option>
+              </select>
+              <span className="text-[11px] text-muted-foreground">Mặc định theo khối của học sinh</span>
+            </div>
             <NumField label="Chiều cao (cm)" value={form.height_cm} onChange={(v) => set("height_cm", v)} error={errors.height_cm} />
             <NumField label="Cân nặng (kg)" value={form.weight_kg} onChange={(v) => set("weight_kg", v)} error={errors.weight_kg} />
             <div className="flex flex-col gap-1">

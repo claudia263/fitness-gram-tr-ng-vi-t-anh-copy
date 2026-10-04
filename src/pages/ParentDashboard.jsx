@@ -11,6 +11,7 @@ import GrowthCard from "@/components/fg/GrowthCard";
 import EmptyState from "@/components/fg/EmptyState";
 import SkeletonCard from "@/components/fg/SkeletonCard";
 import FitnessDetailModal from "@/components/fg/FitnessDetailModal";
+import NormsComparison from "@/components/fg/NormsComparison";
 import { Link } from "react-router-dom";
 import { ChevronRight, Calendar } from "lucide-react";
 
@@ -96,6 +97,11 @@ export default function ParentDashboard() {
           </div>
         ) : (
           <EmptyState className="mb-6" />
+        )}
+
+        {/* So sánh với chuẩn */}
+        {!loading && (
+          <NormsComparison student={activeStudent} fitness={latestFitness} anthro={latestAnthro} />
         )}
 
         {/* Growth + Radar */}
