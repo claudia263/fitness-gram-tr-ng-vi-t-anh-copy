@@ -1,4 +1,5 @@
 import PacerWorldDistribution from "@/components/fg/PacerWorldDistribution";
+import SchoolVsCountries from "@/components/fg/SchoolVsCountries";
 
 export default function SchoolNormsSummary({ summary }) {
   const { total, hfz, pacer, bmi } = summary;
@@ -35,6 +36,8 @@ export default function SchoolNormsSummary({ summary }) {
 
         <PacerWorldDistribution pacer={pacer} />
       </div>
+
+      <SchoolVsCountries pacer={pacer} />
 
       <div className="fg-card p-5">
         <h3 className="font-bold text-navy mb-1">Phân bố tình trạng dinh dưỡng (BMI theo WHO)</h3>
