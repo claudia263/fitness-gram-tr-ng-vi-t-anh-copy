@@ -1,0 +1,22 @@
+{
+  "name": "ParentStudentRelationship",
+  "type": "object",
+  "properties": {
+    "parent_email": {
+      "type": "string",
+      "description": "Email ph\u1ee5 huynh"
+    },
+    "student_id": {
+      "type": "string",
+      "description": "ID h\u1ecdc sinh"
+    },
+    "relationship": {
+      "type": "string",
+      "description": "M\u1ed1i quan h\u1ec7 (Cha/M\u1eb9)"
+    }
+  },
+  "required": [
+    "parent_email",
+    "student_id"
+  ]
+}

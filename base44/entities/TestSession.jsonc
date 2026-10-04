@@ -1,0 +1,41 @@
+{
+  "name": "TestSession",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "T\u00ean \u0111\u1ee3t ki\u1ec3m tra"
+    },
+    "test_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Ng\u00e0y ki\u1ec3m tra"
+    },
+    "semester": {
+      "type": "string",
+      "enum": [
+        "H\u1ecdc k\u1ef3 I",
+        "H\u1ecdc k\u1ef3 II"
+      ],
+      "description": "H\u1ecdc k\u1ef3"
+    },
+    "school_year": {
+      "type": "string",
+      "description": "N\u0103m h\u1ecdc"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Gi\u00e1o vi\u00ean ph\u1ee5 tr\u00e1ch"
+    },
+    "notes": {
+      "type": "string",
+      "description": "Ghi ch\u00fa"
+    }
+  },
+  "required": [
+    "name",
+    "test_date",
+    "semester",
+    "school_year"
+  ]
+}

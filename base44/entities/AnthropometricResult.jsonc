@@ -1,0 +1,44 @@
+{
+  "name": "AnthropometricResult",
+  "type": "object",
+  "properties": {
+    "student_id": {
+      "type": "string",
+      "description": "ID h\u1ecdc sinh"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "ID \u0111\u1ee3t ki\u1ec3m tra"
+    },
+    "height_cm": {
+      "type": "number",
+      "description": "Chi\u1ec1u cao (cm)"
+    },
+    "weight_kg": {
+      "type": "number",
+      "description": "C\u00e2n n\u1eb7ng (kg)"
+    },
+    "bmi": {
+      "type": "number",
+      "description": "BMI t\u1ef1 t\u00ednh"
+    },
+    "age_months": {
+      "type": "number",
+      "description": "Tu\u1ed5i theo th\u00e1ng t\u1ea1i ng\u00e0y ki\u1ec3m tra"
+    },
+    "bmi_for_age_zscore": {
+      "type": "number",
+      "description": "Z-score BMI-for-age (WHO)"
+    },
+    "nutritional_status": {
+      "type": "string",
+      "description": "T\u00ecnh tr\u1ea1ng dinh d\u01b0\u1ee1ng"
+    }
+  },
+  "required": [
+    "student_id",
+    "session_id",
+    "height_cm",
+    "weight_kg"
+  ]
+}

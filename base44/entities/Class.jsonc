@@ -1,0 +1,31 @@
+{
+  "name": "Class",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "description": "T\u00ean l\u1edbp, vd 6A1"
+    },
+    "grade": {
+      "type": "string",
+      "description": "Kh\u1ed1i, vd 6"
+    },
+    "campus": {
+      "type": "string",
+      "description": "C\u01a1 s\u1edf"
+    },
+    "school_year": {
+      "type": "string",
+      "description": "N\u0103m h\u1ecdc"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "GV ch\u1ee7 nhi\u1ec7m"
+    }
+  },
+  "required": [
+    "name",
+    "grade",
+    "school_year"
+  ]
+}

@@ -1,0 +1,67 @@
+{
+  "name": "WhoBmiReference",
+  "type": "object",
+  "properties": {
+    "sex": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female"
+      ],
+      "description": "Gi\u1edbi t\u00ednh"
+    },
+    "age_months": {
+      "type": "number",
+      "description": "Tu\u1ed5i theo th\u00e1ng"
+    },
+    "L": {
+      "type": "number",
+      "description": "Box-Cox power (t\u00f9y ch\u1ecdn)"
+    },
+    "M": {
+      "type": "number",
+      "description": "Median BMI"
+    },
+    "S": {
+      "type": "number",
+      "description": "Coefficient of variation (t\u00f9y ch\u1ecdn)"
+    },
+    "sd_minus3": {
+      "type": "number",
+      "description": "BMI t\u1ea1i -3SD"
+    },
+    "sd_minus2": {
+      "type": "number",
+      "description": "BMI t\u1ea1i -2SD"
+    },
+    "sd_minus1": {
+      "type": "number",
+      "description": "BMI t\u1ea1i -1SD"
+    },
+    "sd_plus1": {
+      "type": "number",
+      "description": "BMI t\u1ea1i +1SD"
+    },
+    "sd_plus2": {
+      "type": "number",
+      "description": "BMI t\u1ea1i +2SD"
+    },
+    "sd_plus3": {
+      "type": "number",
+      "description": "BMI t\u1ea1i +3SD"
+    },
+    "source": {
+      "type": "string",
+      "description": "Ngu\u1ed3n tham chi\u1ebfu"
+    },
+    "version": {
+      "type": "string",
+      "description": "Phi\u00ean b\u1ea3n"
+    }
+  },
+  "required": [
+    "sex",
+    "age_months",
+    "M"
+  ]
+}

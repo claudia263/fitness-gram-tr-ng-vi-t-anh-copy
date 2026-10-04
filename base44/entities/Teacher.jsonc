@@ -1,0 +1,33 @@
+{
+  "name": "Teacher",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "H\u1ecd t\u00ean gi\u00e1o vi\u00ean"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email"
+    },
+    "phone": {
+      "type": "string",
+      "description": "S\u1ed1 \u0111i\u1ec7n tho\u1ea1i"
+    },
+    "campus": {
+      "type": "string",
+      "description": "C\u01a1 s\u1edf"
+    },
+    "assigned_classes": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "L\u1edbp \u0111\u01b0\u1ee3c ph\u00e2n c\u00f4ng"
+    }
+  },
+  "required": [
+    "full_name",
+    "email"
+  ]
+}

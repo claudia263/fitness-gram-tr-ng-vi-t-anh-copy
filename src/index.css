@@ -1,0 +1,119 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --background: 210 28% 96%;
+    --foreground: 236 42% 25%;
+    --card: 0 0% 100%;
+    --card-foreground: 236 42% 25%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 236 42% 25%;
+    --primary: 236 42% 25%;
+    --primary-foreground: 0 0% 100%;
+    --secondary: 230 25% 96%;
+    --secondary-foreground: 236 42% 25%;
+    --muted: 225 20% 96%;
+    --muted-foreground: 233 18% 45%;
+    --accent: 52 95% 52%;
+    --accent-foreground: 236 42% 25%;
+    --destructive: 8 80% 58%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 225 22% 90%;
+    --input: 225 22% 88%;
+    --ring: 236 42% 25%;
+    --radius: 0.75rem;
+    --navy: 236 42% 25%;
+    --yellow: 52 95% 52%;
+    --bg-soft: 210 28% 96%;
+    --bg-light: 220 33% 98%;
+    --font-heading: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+    --font-body: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+    --font-display: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+    --font-mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  }
+}
+
+@layer base {
+  * {
+    border-color: rgba(38, 39, 93, 0.08);
+    outline-color: hsl(var(--ring));
+  }
+
+  body {
+    background-color: #F0F4F8;
+    color: #26275D;
+    font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+}
+
+@layer components {
+  .fg-card {
+    background: #FFFFFF;
+    border: 1px solid rgba(38, 39, 93, 0.08);
+    border-radius: 22px;
+    box-shadow: 0 8px 30px rgba(38, 39, 93, 0.07);
+    transition: transform 250ms ease, box-shadow 250ms ease;
+  }
+  .fg-card-hover:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 16px 40px rgba(38, 39, 93, 0.12);
+  }
+  .fg-btn-primary {
+    background: #F9DD0E;
+    color: #26275D;
+    font-weight: 700;
+    border-radius: 14px;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+  .fg-btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(249, 221, 14, 0.25);
+  }
+  .fg-btn-primary:active {
+    transform: scale(0.98);
+  }
+  .fg-btn-secondary {
+    background: #26275D;
+    color: #FFFFFF;
+    font-weight: 600;
+    border-radius: 14px;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+  .fg-btn-secondary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 10px 30px rgba(38, 39, 93, 0.18);
+  }
+  .fg-input {
+    border: 1px solid rgba(38, 39, 93, 0.15);
+    border-radius: 12px;
+    transition: border-color 180ms ease, box-shadow 180ms ease;
+  }
+  .fg-input:focus {
+    border-color: #26275D;
+    box-shadow: 0 0 0 4px rgba(249, 221, 14, 0.20);
+    outline: none;
+  }
+}
+
+@keyframes fg-shimmer {
+  0% { background-position: -468px 0; }
+  100% { background-position: 468px 0; }
+}
+.fg-skeleton {
+  background: rgba(38, 39, 93, 0.06);
+  background-image: linear-gradient(90deg, rgba(38,39,93,0.04) 25%, rgba(38,39,93,0.10) 37%, rgba(38,39,93,0.04) 63%);
+  background-size: 800px 100%;
+  animation: fg-shimmer 1.6s infinite linear;
+  border-radius: 10px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

@@ -1,0 +1,29 @@
+{
+  "name": "Parent",
+  "type": "object",
+  "properties": {
+    "full_name": {
+      "type": "string",
+      "description": "H\u1ecd t\u00ean ph\u1ee5 huynh"
+    },
+    "email": {
+      "type": "string",
+      "description": "Email \u0111\u0103ng nh\u1eadp"
+    },
+    "phone": {
+      "type": "string",
+      "description": "S\u1ed1 \u0111i\u1ec7n tho\u1ea1i"
+    },
+    "student_ids": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "description": "Danh s\u00e1ch ID h\u1ecdc sinh"
+    }
+  },
+  "required": [
+    "full_name",
+    "email"
+  ]
+}

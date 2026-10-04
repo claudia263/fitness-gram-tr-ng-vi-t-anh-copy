@@ -1,0 +1,42 @@
+{
+  "name": "FitnessResult",
+  "type": "object",
+  "properties": {
+    "student_id": {
+      "type": "string",
+      "description": "ID h\u1ecdc sinh"
+    },
+    "session_id": {
+      "type": "string",
+      "description": "ID \u0111\u1ee3t ki\u1ec3m tra"
+    },
+    "pacer_laps": {
+      "type": "number",
+      "description": "PACER s\u1ed1 l\u01b0\u1ee3t"
+    },
+    "pacer_level": {
+      "type": "number",
+      "description": "PACER level"
+    },
+    "sit_and_reach_cm": {
+      "type": "number",
+      "description": "Sit & Reach (cm)"
+    },
+    "pushup_count": {
+      "type": "number",
+      "description": "Push-up s\u1ed1 l\u1ea7n"
+    },
+    "plank_seconds": {
+      "type": "number",
+      "description": "Plank s\u1ed1 gi\u00e2y"
+    },
+    "teacher_id": {
+      "type": "string",
+      "description": "Gi\u00e1o vi\u00ean nh\u1eadp"
+    }
+  },
+  "required": [
+    "student_id",
+    "session_id"
+  ]
+}

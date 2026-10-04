@@ -1,0 +1,55 @@
+{
+  "name": "Student",
+  "type": "object",
+  "properties": {
+    "student_code": {
+      "type": "string",
+      "description": "M\u00e3 h\u1ecdc sinh"
+    },
+    "full_name": {
+      "type": "string",
+      "description": "H\u1ecd t\u00ean h\u1ecdc sinh"
+    },
+    "birth_date": {
+      "type": "string",
+      "format": "date",
+      "description": "Ng\u00e0y sinh"
+    },
+    "sex": {
+      "type": "string",
+      "enum": [
+        "male",
+        "female"
+      ],
+      "description": "Gi\u1edbi t\u00ednh"
+    },
+    "class_id": {
+      "type": "string",
+      "description": "ID l\u1edbp h\u1ecdc"
+    },
+    "grade": {
+      "type": "string",
+      "description": "Kh\u1ed1i l\u1edbp"
+    },
+    "campus": {
+      "type": "string",
+      "description": "C\u01a1 s\u1edf"
+    },
+    "avatar_url": {
+      "type": "string",
+      "description": "\u1ea2nh \u0111\u1ea1i di\u1ec7n"
+    },
+    "school_year": {
+      "type": "string",
+      "description": "N\u0103m h\u1ecdc"
+    }
+  },
+  "required": [
+    "full_name",
+    "birth_date",
+    "sex",
+    "class_id",
+    "grade",
+    "school_year"
+  ]
+}
