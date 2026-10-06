@@ -6,15 +6,6 @@ import LoginVisual from "@/components/fg/LoginVisual";
 import LoginForm from "@/components/fg/LoginForm";
 import StaffLoginForm from "@/components/fg/StaffLoginForm";
 
-function normalize(str) {
-  return String(str || "")
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/đ/g, "d").replace(/Đ/g, "D")
-    .toLowerCase()
-    .trim();
-}
-
 export default function Login() {
   const reduce = useReducedMotion();
   const navigate = useNavigate();
@@ -27,8 +18,7 @@ export default function Login() {
     setBusy(true);
     setError("");
     try {
-      const all = await base44.entities.Student.list(null, 500);
-      const matched = all.filter((s) => normalize(s.full_name) === normalize(name));
+      const matched = await base44.rpc("lookup_students", { p_name: name });
       if (matched.length === 0) {
         setError("Không tìm thấy học sinh với tên này trong danh sách trường. Vui lòng kiểm tra lại họ tên.");
         setBusy(false);

@@ -1,4 +1,5 @@
 import { useEffect, useState, useRef } from "react";
+import { importFitnessExcel } from "@/lib/importFitnessExcel";
 import { base44 } from "@/api/base44Client";
 import PageTransition from "@/components/fg/PageTransition";
 import AdminExplorer from "@/components/fg/AdminExplorer";
@@ -123,20 +124,18 @@ function SessionForm({ onCreated }) {
     setError("");
     setDone(null);
     try {
-      const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
-      const res = await base44.functions.invoke("importFitnessExcel", {
-        file_url,
+      const res = await importFitnessExcel(file, {
         campus: form.campus || "CS GVP",
         school_year: form.school_year,
         session_name: form.name,
         test_date: form.test_date,
         semester: form.semester,
         notes: form.notes || "Import tự động từ file Excel",
-      });
-      setDone(res.data);
+      }, base44.entities);
+      setDone(res);
       setTimeout(() => onCreated(), 1200);
     } catch (err) {
-      setError(err?.response?.data?.error || err?.message || "Không thể nhập dữ liệu.");
+      setError(err?.message || "Không thể nhập dữ liệu.");
     } finally {
       setBusy(false);
       if (inputRef.current) inputRef.current.value = "";

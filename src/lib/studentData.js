@@ -5,12 +5,7 @@ import { computeZScore, nutritionalStatusFromZScore } from "@/lib/whoReference";
 
 // Load a student's full fitness history (results + anthropometric + comments + sessions)
 export async function loadStudentBundle(studentId) {
-  const [fitness, anthro, comments, sessions] = await Promise.all([
-    base44.entities.FitnessResult.filter({ student_id: studentId }, "-created_date", 100),
-    base44.entities.AnthropometricResult.filter({ student_id: studentId }, "-created_date", 100),
-    base44.entities.TeacherComment.filter({ student_id: studentId }, "-created_date", 100),
-    base44.entities.TestSession.list("-test_date", 100),
-  ]);
+  const { fitness, anthro, comments, sessions } = await base44.rpc("student_bundle", { p_id: studentId });
 
   const sessionMap = {};
   sessions.forEach((s) => (sessionMap[s.id] = s));
@@ -46,8 +41,8 @@ export async function resolveStudentsByIds(ids) {
   const students = [];
   for (const id of ids || []) {
     try {
-      const s = await base44.entities.Student.get(id);
-      students.push(s);
+      const s = await base44.rpc("get_student", { p_id: id });
+      if (s && s.id) students.push(s);
     } catch (e) {
       // bỏ qua id không hợp lệ
     }
