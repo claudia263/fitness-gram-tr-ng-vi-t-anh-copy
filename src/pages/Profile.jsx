@@ -1,6 +1,5 @@
 import { useStudent } from "@/lib/StudentContext";
 import { useAuth } from "@/lib/AuthContext";
-import { formatAge } from "@/lib/fitness";
 import PageTransition from "@/components/fg/PageTransition";
 import StudentProfileCard from "@/components/fg/StudentProfileCard";
 import EmptyState from "@/components/fg/EmptyState";

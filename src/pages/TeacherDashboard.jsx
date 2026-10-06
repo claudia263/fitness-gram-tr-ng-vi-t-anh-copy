@@ -3,7 +3,6 @@ import { base44 } from "@/api/base44Client";
 import { calculateBMI, calculateAgeMonths, nutritionalStatusFromZScore, formatPlankTime } from "@/lib/fitness";
 import { pacerLevelFromLaps, pacerLapsFromLevel, getPacerLevelInfo, pacerDistanceFromLaps } from "@/lib/pacerReference";
 import PageTransition from "@/components/fg/PageTransition";
-import BrandLogo from "@/components/fg/BrandLogo";
 import SchoolNormsTab from "@/components/fg/SchoolNormsTab";
 import { defaultPacerType } from "@/lib/fitnessNorms";
 import { Save, Loader2, CheckCircle2, AlertCircle, ClipboardList, Users, Calendar, History, Download, Target } from "lucide-react";

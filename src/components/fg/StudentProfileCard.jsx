@@ -1,5 +1,5 @@
 import { motion, useReducedMotion } from "framer-motion";
-import { CalendarDays, User, ChevronRight } from "lucide-react";
+import { CalendarDays, ChevronRight } from "lucide-react";
 
 export default function StudentProfileCard({ student, className = "", onNameClick }) {
   const reduce = useReducedMotion();

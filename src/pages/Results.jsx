@@ -7,7 +7,7 @@ import StudentProfileCard from "@/components/fg/StudentProfileCard";
 import EmptyState from "@/components/fg/EmptyState";
 import SkeletonCard from "@/components/fg/SkeletonCard";
 import FitnessDetailModal from "@/components/fg/FitnessDetailModal";
-import { BarChart, Bar, LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
 
 const TESTS = [
   { key: "pacer", name: "PACER", field: "pacer_level", unit: "level", subtitle: "Sức bền tim phổi" },

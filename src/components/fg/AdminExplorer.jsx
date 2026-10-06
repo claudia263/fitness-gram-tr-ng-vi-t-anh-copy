@@ -351,7 +351,6 @@ function StudentResultForm({ student, sessions, onDone }) {
 
   useEffect(() => {
     if (sessionId) loadExisting(sessionId);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionId]);
 
   const save = async () => {

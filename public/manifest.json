@@ -1,0 +1,12 @@
+{
+  "name": "Fitness Gram – Trường Việt Anh",
+  "short_name": "Fitness Gram",
+  "lang": "vi",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#26275D",
+  "theme_color": "#26275D",
+  "icons": [
+    { "src": "/favicon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" }
+  ]
+}

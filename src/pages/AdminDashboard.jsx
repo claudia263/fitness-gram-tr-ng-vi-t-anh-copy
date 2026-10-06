@@ -3,7 +3,7 @@ import { importFitnessExcel } from "@/lib/importFitnessExcel";
 import { base44 } from "@/api/base44Client";
 import PageTransition from "@/components/fg/PageTransition";
 import AdminExplorer from "@/components/fg/AdminExplorer";
-import { Users, GraduationCap, School, ClipboardList, FileBarChart, Plus, Loader2, CheckCircle2, UploadCloud, AlertCircle, FileSpreadsheet } from "lucide-react";
+import { Users, GraduationCap, School, ClipboardList, Plus, Loader2, CheckCircle2, UploadCloud, AlertCircle, FileSpreadsheet } from "lucide-react";
 
 export default function AdminDashboard() {
   const [stats, setStats] = useState({ students: 0, teachers: 0, classes: 0, sessions: 0, fitness: 0, anthro: 0 });
