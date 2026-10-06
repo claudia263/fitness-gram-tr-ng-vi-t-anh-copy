@@ -21,6 +21,12 @@ import History from '@/pages/History';
 import Profile from '@/pages/Profile';
 import TeacherDashboard from '@/pages/TeacherDashboard';
 import AdminDashboard from '@/pages/AdminDashboard';
+import StaffRoute from '@/components/fg/StaffRoute';
+import Clubs from '@/pages/Clubs';
+import ClubDetail from '@/pages/ClubDetail';
+import EvidenceArchive from '@/pages/EvidenceArchive';
+import EvidenceReview from '@/pages/EvidenceReview';
+import { REVIEWERS, STAFF_ROLES } from '@/lib/clubs/model';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -55,6 +61,10 @@ const AuthenticatedApp = () => {
           <Route path="/profile" element={<Profile />} />
           <Route path="/teacher" element={<AdminRoute><TeacherDashboard /></AdminRoute>} />
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+          <Route path="/clb" element={<StaffRoute roles={STAFF_ROLES}><Clubs /></StaffRoute>} />
+          <Route path="/clb/kho-anh" element={<StaffRoute roles={STAFF_ROLES}><EvidenceArchive /></StaffRoute>} />
+          <Route path="/clb/duyet" element={<StaffRoute roles={REVIEWERS}><EvidenceReview /></StaffRoute>} />
+          <Route path="/clb/:id" element={<StaffRoute roles={STAFF_ROLES}><ClubDetail /></StaffRoute>} />
         </Route>
       </Route>
 

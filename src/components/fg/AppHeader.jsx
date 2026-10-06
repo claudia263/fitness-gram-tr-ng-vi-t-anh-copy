@@ -3,21 +3,8 @@ import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { useRole } from "@/lib/RoleContext";
 import BrandLogo from "@/components/fg/BrandLogo";
-import { LogOut, LayoutGrid, BarChart3, History, UserCircle, Menu, X } from "lucide-react";
-
-const PARENT_NAV = [
-  { label: "Tổng quan", to: "/", icon: LayoutGrid },
-  { label: "Kết quả", to: "/results", icon: BarChart3 },
-  { label: "Lịch sử", to: "/history", icon: History },
-  { label: "Hồ sơ", to: "/profile", icon: UserCircle },
-];
-
-const ADMIN_NAV = [
-  { label: "Quản trị", to: "/admin" },
-  { label: "Nhập liệu", to: "/teacher" },
-  { label: "Tổng quan", to: "/" },
-  { label: "Hồ sơ", to: "/profile" },
-];
+import { LogOut, Menu, X } from "lucide-react";
+import { NAV_BY_ROLE, activeNav } from "@/components/fg/navItems";
 
 export default function AppHeader() {
   const { user, logout } = useAuth();
@@ -29,8 +16,9 @@ export default function AppHeader() {
     setMobileOpen(false);
   }, [location.pathname]);
 
-  const nav = role === "admin" ? ADMIN_NAV : PARENT_NAV;
-  const isActive = (to) => (to === "/" ? location.pathname === "/" : location.pathname.startsWith(to));
+  const nav = NAV_BY_ROLE[role] || NAV_BY_ROLE.parent;
+  const current = activeNav(nav, location.pathname);
+  const isActive = (to) => current === to;
 
   const handleLogout = () => {
     sessionStorage.removeItem("fg_entered");

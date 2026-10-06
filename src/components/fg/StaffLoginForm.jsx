@@ -2,10 +2,12 @@ import { useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
+import { ROLE_HOMES } from "@/lib/RoleContext";
+import { ROLE_LABELS, STAFF_ROLES } from "@/lib/clubs/model";
 import { Mail, Lock, LogIn, AlertCircle, ShieldCheck } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 
-// Lối vào dành cho cán bộ nhà trường (giáo viên / quản trị viên):
+// Lối vào dành cho cán bộ nhà trường (quản trị, tổ trưởng, nhân sự, giáo viên):
 // đăng nhập bằng tài khoản của app — không cần tra cứu tên học sinh.
 export default function StaffLoginForm() {
   const { user, isAuthenticated } = useAuth();
@@ -14,12 +16,12 @@ export default function StaffLoginForm() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
-  const isAdmin = isAuthenticated && user?.role === "admin";
+  const isStaff = isAuthenticated && STAFF_ROLES.includes(user?.role);
 
-  const enterManagement = () => {
+  const enterManagement = (role = user?.role) => {
     sessionStorage.setItem("fg_entered", "true");
     sessionStorage.removeItem("fg_student_ids");
-    window.location.href = "/admin";
+    window.location.href = ROLE_HOMES[role] || "/admin";
   };
 
   const handleSubmit = async (e) => {
@@ -30,12 +32,12 @@ export default function StaffLoginForm() {
     try {
       await base44.auth.loginViaEmailPassword(email.trim(), password);
       const me = await base44.auth.me();
-      if (me?.role !== "admin") {
-        setError("Tài khoản này chưa có quyền quản trị. Vui lòng liên hệ nhà trường để được cấp quyền.");
+      if (!STAFF_ROLES.includes(me?.role)) {
+        setError("Tài khoản này chưa được cấp quyền cán bộ. Vui lòng liên hệ nhà trường để được cấp quyền.");
         setBusy(false);
         return;
       }
-      enterManagement();
+      enterManagement(me.role);
     } catch (err) {
       setError("Không đăng nhập được. Kiểm tra lại email và mật khẩu, hoặc dùng “Quên mật khẩu”.");
       setBusy(false);
@@ -46,7 +48,7 @@ export default function StaffLoginForm() {
     base44.auth.loginWithProvider("google", new URL("/admin", window.location.origin).href);
   };
 
-  if (isAdmin) {
+  if (isStaff) {
     return (
       <div className="w-full max-w-sm mx-auto">
         <div className="fg-card p-5 sm:p-6 space-y-3">
@@ -54,13 +56,13 @@ export default function StaffLoginForm() {
             <ShieldCheck className="w-4 h-4" />
             <span className="truncate">{user?.full_name || user?.email}</span>
           </div>
-          <p className="text-xs text-muted-foreground">Tài khoản này có quyền quản trị của trường.</p>
+          <p className="text-xs text-muted-foreground">Tài khoản có quyền {ROLE_LABELS[user.role]} của trường.</p>
           <button
             type="button"
-            onClick={enterManagement}
+            onClick={() => enterManagement()}
             className="fg-btn-primary w-full h-11 inline-flex items-center justify-center gap-2 text-sm"
           >
-            <LogIn className="w-4 h-4" /> Vào trang quản trị
+            <LogIn className="w-4 h-4" /> Vào trang làm việc
           </button>
         </div>
       </div>

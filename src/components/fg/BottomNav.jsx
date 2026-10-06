@@ -1,25 +1,21 @@
 import { Link, useLocation } from "react-router-dom";
-import { LayoutGrid, BarChart3, History, UserCircle } from "lucide-react";
-
-const ITEMS = [
-  { label: "Tổng quan", to: "/", icon: LayoutGrid },
-  { label: "Kết quả", to: "/results", icon: BarChart3 },
-  { label: "Lịch sử", to: "/history", icon: History },
-  { label: "Hồ sơ", to: "/profile", icon: UserCircle },
-];
+import { useRole } from "@/lib/RoleContext";
+import { NAV_BY_ROLE, activeNav } from "@/components/fg/navItems";
 
 export default function BottomNav() {
   const location = useLocation();
-  const isActive = (to) => (to === "/" ? location.pathname === "/" : location.pathname.startsWith(to));
+  const { role } = useRole();
+  const items = (NAV_BY_ROLE[role] || NAV_BY_ROLE.parent).slice(0, 5);
+  const current = activeNav(items, location.pathname);
 
   return (
     <nav
       className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white"
       style={{ borderTop: "1px solid rgba(38,39,93,0.08)", paddingBottom: "env(safe-area-inset-bottom)" }}
     >
-      <div className="grid grid-cols-4">
-        {ITEMS.map((item) => {
-          const active = isActive(item.to);
+      <div className="grid" style={{ gridTemplateColumns: `repeat(${items.length}, minmax(0, 1fr))` }}>
+        {items.map((item) => {
+          const active = current === item.to;
           const Icon = item.icon;
           return (
             <Link
@@ -36,7 +32,7 @@ export default function BottomNav() {
                 className="text-[11px] font-semibold"
                 style={{ color: active ? "#26275D" : "#9CA3B5" }}
               >
-                {item.label}
+                {item.short || item.label}
               </span>
             </Link>
           );
