@@ -1,5 +1,6 @@
 import { useState, useMemo } from "react";
 import { useStudent } from "@/lib/StudentContext";
+import { useTrackView } from "@/lib/usage";
 import { enrichAnthro } from "@/lib/studentData";
 import { formatPlankTime, formatAge } from "@/lib/fitness";
 import PageTransition from "@/components/fg/PageTransition";
@@ -8,6 +9,7 @@ import { Filter, Calendar } from "lucide-react";
 
 export default function History() {
   const { activeStudent, loadingStudents, data, loading } = useStudent();
+  useTrackView("xem_lich_su", { studentId: activeStudent?.id, enabled: !!activeStudent });
   const [semester, setSemester] = useState("all");
   const [schoolYear, setSchoolYear] = useState("all");
 

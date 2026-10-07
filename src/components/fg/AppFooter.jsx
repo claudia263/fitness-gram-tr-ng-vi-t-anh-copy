@@ -1,4 +1,5 @@
 import BrandLogo from "@/components/fg/BrandLogo";
+import { USAGE_NOTICE } from "@/lib/usage";
 
 export default function AppFooter() {
   return (
@@ -21,8 +22,8 @@ export default function AppFooter() {
           </div>
         </div>
         <div className="mt-8 pt-6 border-t flex flex-col sm:flex-row justify-between gap-3 text-xs" style={{ borderColor: "rgba(255,255,255,0.12)", color: "rgba(255,255,255,0.5)" }}>
-          <span>© 2026 Fitness Gram – Trường Việt Anh. Dữ liệu demo.</span>
-          <span>Phát triển trên nền tảng giáo dục thể chất học đường.</span>
+          <span>© 2026 Fitness Gram – Trường Việt Anh.</span>
+          <span>{USAGE_NOTICE}</span>
         </div>
       </div>
     </footer>

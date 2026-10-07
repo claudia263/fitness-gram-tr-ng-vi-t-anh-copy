@@ -2,7 +2,7 @@
 
 ## 1. Supabase (một lần)
 
-1. **SQL Editor** → dán toàn bộ [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) → Run, sau đó làm tương tự với [`0002_clubs.sql`](supabase/migrations/0002_clubs.sql) (module CLB: vai trò cán bộ, CLB theo TKB, kho ảnh minh chứng `evidence`).
+1. **SQL Editor** → dán toàn bộ [`supabase/migrations/0001_init.sql`](supabase/migrations/0001_init.sql) → Run, sau đó làm tương tự với [`0002_clubs.sql`](supabase/migrations/0002_clubs.sql) (module CLB: vai trò cán bộ, CLB theo TKB, kho ảnh minh chứng `evidence`). Cuối cùng chạy [`0003_major_os.sql`](supabase/migrations/0003_major_os.sql) (ghi nhận sử dụng + API báo cáo cho Major OS, xem [`docs/major-os.md`](docs/major-os.md)).
 2. **Authentication → URL Configuration**
    - Site URL: `https://<domain-của-bạn>`
    - Redirect URLs: thêm `https://<domain-của-bạn>/**`

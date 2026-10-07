@@ -6,6 +6,7 @@ import { ROLE_HOMES } from "@/lib/RoleContext";
 import { ROLE_LABELS, STAFF_ROLES } from "@/lib/clubs/model";
 import { Mail, Lock, LogIn, AlertCircle, ShieldCheck } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
+import { trackAndWait } from "@/lib/usage";
 
 // Lối vào dành cho cán bộ nhà trường (quản trị, tổ trưởng, nhân sự, giáo viên):
 // đăng nhập bằng tài khoản của app — không cần tra cứu tên học sinh.
@@ -29,7 +30,8 @@ export default function StaffLoginForm() {
 
   const isStaff = isAuthenticated && STAFF_ROLES.includes(user?.role);
 
-  const enterManagement = (role = user?.role) => {
+  const enterManagement = async (role = user?.role, cach = null) => {
+    if (cach) await trackAndWait("dang_nhap", { chiTiet: { cach } });
     sessionStorage.setItem("fg_entered", "true");
     sessionStorage.removeItem("fg_student_ids");
     sessionStorage.removeItem(GOOGLE_FLAG);
@@ -42,7 +44,7 @@ export default function StaffLoginForm() {
 
   // Vừa quay lại từ Google: cán bộ vào thẳng trang làm việc
   useEffect(() => {
-    if (isStaff && sessionStorage.getItem(GOOGLE_FLAG)) enterManagement(user.role);
+    if (isStaff && sessionStorage.getItem(GOOGLE_FLAG)) enterManagement(user.role, "google");
   }, [isStaff, user?.role]);
 
   const handleSubmit = async (e) => {
@@ -58,7 +60,7 @@ export default function StaffLoginForm() {
         setBusy(false);
         return;
       }
-      enterManagement(me.role);
+      await enterManagement(me.role, "mat_khau");
     } catch (err) {
       setError("Không đăng nhập được. Kiểm tra lại email và mật khẩu, hoặc dùng “Quên mật khẩu”.");
       setBusy(false);

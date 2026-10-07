@@ -9,6 +9,7 @@ import {
 } from "@/lib/clubs/model";
 import { CheckChip, ClubChip, PageHeader, StatusPill, chipCls } from "@/components/clubs/ClubUi";
 import PhotoViewer, { EvidenceThumb, isFlagged } from "@/components/clubs/PhotoViewer";
+import { useTrackView } from "@/lib/usage";
 
 const labelCls = "mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground";
 const inputCls = "fg-input h-10 w-full bg-white px-3 text-sm text-navy";
@@ -170,6 +171,7 @@ export default function EvidenceReview() {
   }, [vKey]);
   const evidence = useEvidence(range);
   const sessions = evidence.data || [];
+  useTrackView("xem_duyet_minh_chung");
 
   const teacherName = (c) => teacherOf(c, staffById);
   const teachers = [...new Set(clubs.map(teacherName))].sort((a, b) => a.localeCompare(b, "vi"));

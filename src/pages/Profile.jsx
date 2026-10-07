@@ -1,4 +1,5 @@
 import { useStudent } from "@/lib/StudentContext";
+import { useTrackView } from "@/lib/usage";
 import { useAuth } from "@/lib/AuthContext";
 import PageTransition from "@/components/fg/PageTransition";
 import StudentProfileCard from "@/components/fg/StudentProfileCard";
@@ -7,6 +8,7 @@ import EmptyState from "@/components/fg/EmptyState";
 export default function Profile() {
   const { user } = useAuth();
   const { activeStudent, loadingStudents, students, setActiveStudent } = useStudent();
+  useTrackView("xem_ho_so", { studentId: activeStudent?.id, enabled: !!activeStudent });
 
   if (loadingStudents) {
     return (

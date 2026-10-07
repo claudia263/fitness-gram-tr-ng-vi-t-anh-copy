@@ -7,6 +7,7 @@ import { checkClock, checkGeo, cleanCode, formatCode } from "@/lib/clubs/evidenc
 import { DOW_WORD, SPORTS, SPORT_ORDER, checkTime, fmtDate, fmtHm, fmtShortDate, norm, parseYmd, teacherOf, ymd } from "@/lib/clubs/model";
 import { PageHeader, chipCls } from "@/components/clubs/ClubUi";
 import PhotoViewer, { EvidenceThumb } from "@/components/clubs/PhotoViewer";
+import { track, useTrackView } from "@/lib/usage";
 
 const labelCls = "mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground";
 const inputCls = "fg-input h-10 w-full bg-white px-3 text-sm text-navy";
@@ -24,6 +25,7 @@ function VerifyPanel({ clubById, onOpen }) {
       const photo = await findPhotoByCode(formatCode(code));
       const club = photo && clubById[photo.club_id];
       setResult(photo && club ? { photo, club, status: photo.evidence_sessions?.status } : { notFound: formatCode(code) });
+      track("xac_minh_ma_anh", { chiTiet: { ket_qua: photo ? "khop" : "khong_tim_thay" } });
     } catch (err) {
       setResult({ error: err.message });
     } finally {
@@ -86,6 +88,7 @@ export default function EvidenceArchive() {
   const [limit, setLimit] = useState(60);
   const [viewer, setViewer] = useState(null); // { entries, index }
   const evidence = useEvidence({ from, to });
+  useTrackView("xem_kho_anh");
 
   const teachers = useMemo(() => [...new Set(clubs.map((c) => teacherOf(c, staffById)))].sort((a, b) => a.localeCompare(b, "vi")), [clubs, staffById]);
   const all = useMemo(

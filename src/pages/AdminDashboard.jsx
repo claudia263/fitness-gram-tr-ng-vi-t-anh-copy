@@ -3,6 +3,7 @@ import { importFitnessExcel } from "@/lib/importFitnessExcel";
 import { base44 } from "@/api/base44Client";
 import PageTransition from "@/components/fg/PageTransition";
 import AdminExplorer from "@/components/fg/AdminExplorer";
+import { track, useTrackView } from "@/lib/usage";
 import { Users, GraduationCap, School, ClipboardList, Plus, Loader2, CheckCircle2, UploadCloud, AlertCircle, FileSpreadsheet } from "lucide-react";
 
 export default function AdminDashboard() {
@@ -12,6 +13,7 @@ export default function AdminDashboard() {
   const [classes, setClasses] = useState([]);
   const [sessions, setSessions] = useState([]);
   const [loading, setLoading] = useState(true);
+  useTrackView("xem_quan_tri");
   const [showSessionForm, setShowSessionForm] = useState(false);
   const [explorer, setExplorer] = useState(null); // null | "students" | "classes"
 
@@ -133,6 +135,7 @@ function SessionForm({ onCreated }) {
         notes: form.notes || "Import tự động từ file Excel",
       }, base44.entities);
       setDone(res);
+      track("nhap_excel_the_luc", { soLan: Math.max(1, (res?.fitness || 0) + (res?.anthropometric || 0)), chiTiet: { dot: form.name, hoc_sinh: res?.students } });
       setTimeout(() => onCreated(), 1200);
     } catch (err) {
       setError(err?.message || "Không thể nhập dữ liệu.");

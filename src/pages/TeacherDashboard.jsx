@@ -4,6 +4,7 @@ import { calculateBMI, calculateAgeMonths, nutritionalStatusFromZScore, formatPl
 import { pacerLevelFromLaps, pacerLapsFromLevel, getPacerLevelInfo, pacerDistanceFromLaps } from "@/lib/pacerReference";
 import PageTransition from "@/components/fg/PageTransition";
 import SchoolNormsTab from "@/components/fg/SchoolNormsTab";
+import { track } from "@/lib/usage";
 import { defaultPacerType } from "@/lib/fitnessNorms";
 import { Save, Loader2, CheckCircle2, AlertCircle, ClipboardList, Users, Calendar, History, Download, Target } from "lucide-react";
 
@@ -256,6 +257,7 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
       }
 
       setSuccess(true);
+      track("nhap_diem_the_luc", { chiTiet: { student_id: selectedStudent, session_id: selectedSession } });
       setTimeout(() => setSuccess(false), 3500);
     } catch (err) {
       setErrors({ _save: err.message || "Lỗi khi lưu" });

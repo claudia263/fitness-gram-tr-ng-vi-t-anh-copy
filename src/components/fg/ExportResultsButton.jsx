@@ -4,6 +4,7 @@ import { Download, Loader2 } from "lucide-react";
 import html2canvas from "html2canvas";
 import jsPDF from "jspdf";
 import ExportReport from "@/components/fg/ExportReport";
+import { track } from "@/lib/usage";
 
 // Xuất báo cáo A4 đầy đủ — chia 2 trang (html2canvas → PDF) cho học sinh đang xem
 export default function ExportResultsButton({ student, data, className = "" }) {
@@ -39,6 +40,7 @@ export default function ExportResultsButton({ student, data, className = "" }) {
         pdf.addImage(imgData, "JPEG", 0, yOffset, imgW, imgH);
       }
 
+      track("xuat_pdf", { studentId: student.id });
       pdf.save(`FitnessGram_${(student.full_name || "hocsinh").replace(/\s+/g, "_")}.pdf`);
     } finally {
       setBusy(false);

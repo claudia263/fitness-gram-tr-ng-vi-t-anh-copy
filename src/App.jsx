@@ -27,6 +27,8 @@ import ClubDetail from '@/pages/ClubDetail';
 import EvidenceArchive from '@/pages/EvidenceArchive';
 import EvidenceReview from '@/pages/EvidenceReview';
 import { REVIEWERS, STAFF_ROLES } from '@/lib/clubs/model';
+import { startUsageClock } from '@/lib/usage';
+import { useEffect } from 'react';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -75,6 +77,7 @@ const AuthenticatedApp = () => {
 
 
 function App() {
+  useEffect(() => startUsageClock(), []);
 
   return (
     <AuthProvider>

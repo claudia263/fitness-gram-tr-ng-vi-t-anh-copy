@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import LoginVisual from "@/components/fg/LoginVisual";
 import LoginForm from "@/components/fg/LoginForm";
 import StaffLoginForm from "@/components/fg/StaffLoginForm";
+import { USAGE_NOTICE, track } from "@/lib/usage";
 
 export default function Login() {
   const reduce = useReducedMotion();
@@ -29,6 +30,7 @@ export default function Login() {
       }
       sessionStorage.setItem("fg_entered", "true");
       sessionStorage.setItem("fg_student_ids", JSON.stringify(matched.map((s) => s.id)));
+      matched.forEach((s) => track("tra_cuu_ket_qua", { studentId: s.id }));
       window.dispatchEvent(new Event("fg_students_changed"));
       setLeaving(true);
       setTimeout(() => navigate("/"), 300);
@@ -74,6 +76,9 @@ export default function Login() {
             ) : (
               <StaffLoginForm />
             )}
+            <p className="mt-4 text-center text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.6)" }}>
+              {USAGE_NOTICE}
+            </p>
           </div>
         </LoginVisual>
       </motion.div>

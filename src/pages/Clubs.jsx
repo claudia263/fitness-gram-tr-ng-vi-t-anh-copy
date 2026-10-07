@@ -10,6 +10,7 @@ import {
 import { PageHeader, SportIcon, chipCls } from "@/components/clubs/ClubUi";
 import WeeklyTimetable from "@/components/clubs/WeeklyTimetable";
 import ClubFormDialog from "@/components/clubs/ClubFormDialog";
+import { useTrackView } from "@/lib/usage";
 
 function ClubCard({ club, staffById, pending, now, onOpen }) {
   const tone = toneOf(club);
@@ -82,6 +83,7 @@ export default function Clubs() {
   const [level, setLevel] = useState("all");
   const [adding, setAdding] = useState(false);
   const canManage = CLUB_MANAGERS.includes(user?.role);
+  useTrackView("xem_danh_sach_clb");
 
   const pendingByClub = useMemo(() => {
     const m = {};

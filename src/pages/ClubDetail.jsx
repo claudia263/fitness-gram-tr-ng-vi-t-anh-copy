@@ -13,6 +13,7 @@ import { StatusPill, SportIcon } from "@/components/clubs/ClubUi";
 import ClubFormDialog from "@/components/clubs/ClubFormDialog";
 import EvidenceCamera from "@/components/clubs/EvidenceCamera";
 import PhotoViewer, { EvidenceThumb, isFlagged } from "@/components/clubs/PhotoViewer";
+import { useTrackView } from "@/lib/usage";
 
 const TABS = [
   { key: "schedule", label: "Lịch sinh hoạt", icon: CalendarDays },
@@ -234,6 +235,7 @@ export default function ClubDetail() {
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
   const tabRefs = useRef({});
+  useTrackView("xem_chi_tiet_clb", { chiTiet: { club_id: id } });
 
   const club = clubById[id];
   if (loading) {

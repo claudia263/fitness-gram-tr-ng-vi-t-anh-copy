@@ -1,6 +1,7 @@
 import { Navigate, useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { useStudent } from "@/lib/StudentContext";
+import { useTrackView } from "@/lib/usage";
 import { ROLE_HOMES, useRole } from "@/lib/RoleContext";
 import PageTransition from "@/components/fg/PageTransition";
 import BrandLogo from "@/components/fg/BrandLogo";
@@ -16,6 +17,7 @@ export default function LookupHome() {
   const { students, activeStudent, setActiveStudent, loadingStudents } = useStudent();
   const { role } = useRole();
   const navigate = useNavigate();
+  useTrackView("xem_tong_quan", { studentId: activeStudent?.id, enabled: role === "parent" && !!activeStudent });
 
   // Cán bộ nhà trường không dùng trang tra cứu của phụ huynh → vào thẳng trang của vai trò mình
   if (role !== "parent") {

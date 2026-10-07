@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useStudent } from "@/lib/StudentContext";
+import { useTrackView } from "@/lib/usage";
 import { enrichAnthro } from "@/lib/studentData";
 import { formatPlankTime } from "@/lib/fitness";
 import PageTransition from "@/components/fg/PageTransition";
@@ -18,6 +19,7 @@ const TESTS = [
 
 export default function Results() {
   const { activeStudent, loadingStudents, data, loading } = useStudent();
+  useTrackView("xem_ket_qua", { studentId: activeStudent?.id, enabled: !!activeStudent });
   const [openTest, setOpenTest] = useState(null);
 
   const fitnessRows = data?.fitnessRows || [];
