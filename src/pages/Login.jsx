@@ -12,7 +12,10 @@ export default function Login() {
   const [leaving, setLeaving] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  const [mode, setMode] = useState("parent");
+  // Quay lại từ đăng nhập Google (hoặc link ?staff=1) → mở thẳng tab cán bộ
+  const [mode, setMode] = useState(() =>
+    new URLSearchParams(window.location.search).get("staff") || sessionStorage.getItem("fg_google_login") ? "staff" : "parent"
+  );
 
   const handleSubmit = async (name) => {
     setBusy(true);

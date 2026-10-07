@@ -70,12 +70,22 @@ const auth = {
     const { error } = await supabase.auth.updateUser({ password: newPassword });
     if (error) throw authError(error.message, 400);
   },
-  async loginWithProvider(provider, redirectTo) {
+  async loginWithProvider(provider, redirectTo, queryParams) {
     const { error } = await supabase.auth.signInWithOAuth({
       provider,
-      options: { redirectTo: new URL(redirectTo || '/', window.location.origin).href },
+      options: { redirectTo: new URL(redirectTo || '/', window.location.origin).href, queryParams },
     });
     if (error) throw authError(error.message, 400);
+  },
+  // Các nhà cung cấp đăng nhập đang bật trên Supabase, vd { email: true, google: false }
+  async providers() {
+    try {
+      const res = await fetch(`${supabaseUrl}/auth/v1/settings`, { headers: { apikey: supabaseAnonKey } });
+      const data = await res.json();
+      return data.external || {};
+    } catch (e) {
+      return {};
+    }
   },
   async logout(redirectUrl) {
     await supabase.auth.signOut();

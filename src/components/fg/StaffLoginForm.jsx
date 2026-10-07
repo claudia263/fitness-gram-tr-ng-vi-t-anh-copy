@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
@@ -9,20 +9,41 @@ import GoogleIcon from "@/components/GoogleIcon";
 
 // Lối vào dành cho cán bộ nhà trường (quản trị, tổ trưởng, nhân sự, giáo viên):
 // đăng nhập bằng tài khoản của app — không cần tra cứu tên học sinh.
+const SCHOOL_DOMAIN = "truongvietanh.com";
+const GOOGLE_FLAG = "fg_google_login";
+
+// Lỗi Google/Supabase trả về trên địa chỉ khi đăng nhập thất bại
+function oauthErrorFromUrl() {
+  const params = new URLSearchParams(window.location.hash.replace(/^#/, "") || window.location.search);
+  const desc = params.get("error_description");
+  return desc ? `Đăng nhập Google không thành công: ${desc.replace(/\+/g, " ")}` : "";
+}
+
 export default function StaffLoginForm() {
-  const { user, isAuthenticated } = useAuth();
+  const { user, isAuthenticated, logout } = useAuth();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
-  const [error, setError] = useState("");
+  const [error, setError] = useState(oauthErrorFromUrl);
+  const [googleEnabled, setGoogleEnabled] = useState(false);
 
   const isStaff = isAuthenticated && STAFF_ROLES.includes(user?.role);
 
   const enterManagement = (role = user?.role) => {
     sessionStorage.setItem("fg_entered", "true");
     sessionStorage.removeItem("fg_student_ids");
+    sessionStorage.removeItem(GOOGLE_FLAG);
     window.location.href = ROLE_HOMES[role] || "/admin";
   };
+
+  useEffect(() => {
+    base44.auth.providers().then((p) => setGoogleEnabled(!!p.google));
+  }, []);
+
+  // Vừa quay lại từ Google: cán bộ vào thẳng trang làm việc
+  useEffect(() => {
+    if (isStaff && sessionStorage.getItem(GOOGLE_FLAG)) enterManagement(user.role);
+  }, [isStaff, user?.role]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -44,9 +65,44 @@ export default function StaffLoginForm() {
     }
   };
 
-  const handleGoogle = () => {
-    base44.auth.loginWithProvider("google", new URL("/admin", window.location.origin).href);
+  const handleGoogle = async () => {
+    setError("");
+    sessionStorage.setItem(GOOGLE_FLAG, "1");
+    try {
+      // hd: chỉ gợi ý tài khoản Google Workspace của trường
+      await base44.auth.loginWithProvider("google", `${window.location.origin}/login?staff=1`, { hd: SCHOOL_DOMAIN, prompt: "select_account" });
+    } catch (err) {
+      sessionStorage.removeItem(GOOGLE_FLAG);
+      setError("Chưa mở được đăng nhập Google. Vui lòng thử lại hoặc dùng email và mật khẩu.");
+    }
   };
+
+  // Đã đăng nhập (vd bằng Google) nhưng email chưa được cấp quyền cán bộ
+  if (isAuthenticated && !isStaff) {
+    return (
+      <div className="w-full max-w-sm mx-auto">
+        <div className="fg-card p-5 sm:p-6 space-y-3">
+          <div className="flex items-start gap-2 text-sm font-medium text-destructive">
+            <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+            <span>
+              Tài khoản <b>{user?.email}</b> chưa được cấp quyền cán bộ. Vui lòng nhờ quản trị thêm email này vào danh sách cán bộ, rồi đăng nhập lại.
+            </span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              sessionStorage.removeItem(GOOGLE_FLAG);
+              logout(false);
+            }}
+            className="w-full h-11 inline-flex items-center justify-center gap-2 rounded-[14px] bg-white text-sm font-semibold"
+            style={{ border: "1px solid rgba(38,39,93,0.15)", color: "#26275D" }}
+          >
+            Đăng nhập bằng tài khoản khác
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   if (isStaff) {
     return (
@@ -125,14 +181,16 @@ export default function StaffLoginForm() {
           )}
         </button>
 
-        <button
-          type="button"
-          onClick={handleGoogle}
-          className="w-full h-11 inline-flex items-center justify-center gap-2 rounded-[14px] bg-white text-sm font-semibold"
-          style={{ border: "1px solid rgba(38,39,93,0.15)", color: "#26275D" }}
-        >
-          <GoogleIcon className="w-4 h-4" /> Đăng nhập bằng Google
-        </button>
+        {googleEnabled && (
+          <button
+            type="button"
+            onClick={handleGoogle}
+            className="w-full h-11 inline-flex items-center justify-center gap-2 rounded-[14px] bg-white text-sm font-semibold"
+            style={{ border: "1px solid rgba(38,39,93,0.15)", color: "#26275D" }}
+          >
+            <GoogleIcon className="w-4 h-4" /> Đăng nhập bằng Google @{SCHOOL_DOMAIN}
+          </button>
+        )}
 
         <div className="text-center">
           <Link to="/forgot-password" className="text-xs font-semibold text-muted-foreground hover:text-navy">
@@ -142,7 +200,7 @@ export default function StaffLoginForm() {
       </form>
 
       <p className="text-center text-xs mt-3" style={{ color: "rgba(255,255,255,0.7)" }}>
-        Dành cho giáo viên và quản trị viên của trường
+        Dành cho giáo viên, tổ trưởng, nhân sự và quản trị viên của trường
       </p>
     </div>
   );
