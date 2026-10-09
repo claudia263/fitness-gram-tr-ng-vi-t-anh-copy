@@ -5,13 +5,14 @@ import PageTransition from "@/components/fg/PageTransition";
 import EmptyState from "@/components/fg/EmptyState";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/lib/AuthContext";
-import { deleteClub, saveClub, useClubData, useEvidence, useInvalidateClubs, useSignedUrls } from "@/lib/clubs/api";
+import { deleteClub, saveClub, useClubData, useEvidence, useInvalidateClubs, useMembers, useSignedUrls } from "@/lib/clubs/api";
 import {
   CLUB_MANAGERS, DOW_FULL, DOW_SHORT, SPORTS, WEEK_ORDER, durationText, fmtDate, fmtShortDate, hasStarted, levelLabel, nextSession, parseYmd, slotFor, teacherOf, toMin, toneOf, ymd,
 } from "@/lib/clubs/model";
 import { StatusPill, SportIcon } from "@/components/clubs/ClubUi";
 import ClubFormDialog from "@/components/clubs/ClubFormDialog";
 import EvidenceCamera from "@/components/clubs/EvidenceCamera";
+import ClubMembers from "@/components/clubs/ClubMembers";
 import PhotoViewer, { EvidenceThumb, isFlagged } from "@/components/clubs/PhotoViewer";
 import { useTrackView } from "@/lib/usage";
 
@@ -231,6 +232,7 @@ export default function ClubDetail() {
     return { from: ymd(d), to: ymd(now), clubId: id };
   }, [now, id]);
   const evidence = useEvidence(range);
+  const members = useMembers(id);
   const [tab, setTab] = useState("schedule");
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -325,7 +327,7 @@ export default function ClubDetail() {
             <dl className="flex gap-6">
               {[
                 ["Buổi / tuần", club.slots.length],
-                ["Sĩ số dự kiến", club.expected_size ?? "—"],
+                ["Học viên", members.data ? `${members.data.length}${club.expected_size ? `/${club.expected_size}` : ""}` : "—"],
                 ["Chờ duyệt", pending],
               ].map(([k, v]) => (
                 <div key={k}>
@@ -364,12 +366,7 @@ export default function ClubDetail() {
 
         <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
           {tab === "schedule" && <ScheduleTab club={club} sessions={sessions} now={now} />}
-          {tab === "students" && (
-            <EmptyState
-              title="Chưa có danh sách học viên"
-              description={`Sĩ số dự kiến ${club.expected_size ?? "—"} em. Danh sách học viên và điểm danh sẽ được nhập từ file đăng ký CLB ở bước tiếp theo.`}
-            />
-          )}
+          {tab === "students" && <ClubMembers club={club} canEdit={canCapture} />}
           {tab === "evidence" && (
             <EvidenceTab club={club} sessions={sessions} canCapture={canCapture} staffById={staffById} location={location} onSaved={() => invalidate(["evidence"])} />
           )}

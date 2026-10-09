@@ -77,6 +77,11 @@ const auth = {
     });
     if (error) throw authError(error.message, 400);
   },
+  // Link đăng nhập gửi qua email; chưa có tài khoản thì tự tạo (vai trò lấy từ staff_invites)
+  async sendLoginLink(email, redirectTo) {
+    const { error } = await supabase.auth.signInWithOtp({ email, options: { emailRedirectTo: redirectTo, shouldCreateUser: true } });
+    if (error) throw authError(error.message, error.status || 400);
+  },
   // Các nhà cung cấp đăng nhập đang bật trên Supabase, vd { email: true, google: false }
   async providers() {
     try {

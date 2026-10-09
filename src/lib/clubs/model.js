@@ -35,6 +35,12 @@ export const LEVELS = [
   { key: "THCS", label: "THCS" },
   { key: "THPT", label: "THPT" },
 ];
+// Khối lớp → cấp học (1–5: TH, 6–9: THCS, 10–12: THPT); null nếu không đọc được
+export const levelOfGrade = (grade) => {
+  const g = parseInt(grade, 10);
+  if (!g) return null;
+  return g <= 5 ? "TH" : g <= 9 ? "THCS" : "THPT";
+};
 export const levelLabel = (levels = []) => LEVELS.filter((l) => levels.includes(l.key)).map((l) => l.label).join(" · ");
 
 export const DOW_SHORT = ["CN", "T2", "T3", "T4", "T5", "T6", "T7"];

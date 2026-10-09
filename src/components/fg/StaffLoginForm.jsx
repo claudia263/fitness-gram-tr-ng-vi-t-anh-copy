@@ -4,7 +4,7 @@ import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { ROLE_HOMES } from "@/lib/RoleContext";
 import { ROLE_LABELS, STAFF_ROLES } from "@/lib/clubs/model";
-import { Mail, Lock, LogIn, AlertCircle, ShieldCheck } from "lucide-react";
+import { Mail, Lock, LogIn, AlertCircle, ShieldCheck, Send, MailCheck } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import { trackAndWait } from "@/lib/usage";
 
@@ -27,6 +27,8 @@ export default function StaffLoginForm() {
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState(oauthErrorFromUrl);
   const [googleEnabled, setGoogleEnabled] = useState(false);
+  const [linkMode, setLinkMode] = useState(false); // đăng nhập lần đầu bằng link email
+  const [linkSent, setLinkSent] = useState("");
 
   const isStaff = isAuthenticated && STAFF_ROLES.includes(user?.role);
 
@@ -63,6 +65,26 @@ export default function StaffLoginForm() {
       await enterManagement(me.role, "mat_khau");
     } catch (err) {
       setError("Không đăng nhập được. Kiểm tra lại email và mật khẩu, hoặc dùng “Quên mật khẩu”.");
+      setBusy(false);
+    }
+  };
+
+  const handleSendLink = async (e) => {
+    e.preventDefault();
+    const target = email.trim().toLowerCase();
+    if (!target) return;
+    setBusy(true);
+    setError("");
+    try {
+      await base44.auth.sendLoginLink(target, `${window.location.origin}/login?staff=1`);
+      setLinkSent(target);
+    } catch (err) {
+      setError(
+        err.status === 429
+          ? "Vừa gửi link quá nhiều lần. Vui lòng đợi vài phút rồi thử lại."
+          : "Chưa gửi được link đăng nhập. Kiểm tra lại email hoặc liên hệ quản trị."
+      );
+    } finally {
       setBusy(false);
     }
   };
@@ -123,6 +145,74 @@ export default function StaffLoginForm() {
             <LogIn className="w-4 h-4" /> Vào trang làm việc
           </button>
         </div>
+      </div>
+    );
+  }
+
+  if (linkMode) {
+    return (
+      <div className="w-full max-w-sm mx-auto">
+        <form onSubmit={handleSendLink} className="fg-card p-5 sm:p-6 space-y-4">
+          {linkSent ? (
+            <div className="space-y-2 text-sm text-navy" aria-live="polite">
+              <p className="flex items-center gap-2 font-bold">
+                <MailCheck className="w-5 h-5" /> Đã gửi link đăng nhập
+              </p>
+              <p>
+                Mở hộp thư <b>{linkSent}</b> (xem cả mục Spam/Quảng cáo) và bấm link trong email. Link chỉ dùng được một lần.
+              </p>
+            </div>
+          ) : (
+            <>
+              <div>
+                <p className="text-sm font-bold text-navy">Đăng nhập lần đầu</p>
+                <p className="text-xs text-muted-foreground mt-1">
+                  Nhập email trường đã được quản trị thêm vào danh sách cán bộ. App gửi link đăng nhập về email, không cần mật khẩu.
+                </p>
+              </div>
+              <div>
+                <label htmlFor="link-email" className="text-xs font-semibold text-muted-foreground uppercase mb-1.5 block">
+                  Email
+                </label>
+                <div className="relative">
+                  <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+                  <input
+                    id="link-email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder={`ten@${SCHOOL_DOMAIN}`}
+                    autoComplete="email"
+                    className="fg-input w-full h-11 pl-11 pr-4 text-sm font-medium text-navy"
+                    required
+                  />
+                </div>
+              </div>
+              {error && (
+                <div className="flex items-start gap-2 text-xs font-medium text-destructive">
+                  <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
+                  <span>{error}</span>
+                </div>
+              )}
+              <button type="submit" disabled={busy} className="fg-btn-primary w-full h-11 inline-flex items-center justify-center gap-2 text-sm">
+                {busy ? <span className="w-4 h-4 border-2 border-navy/30 border-t-navy rounded-full animate-spin" /> : <><Send className="w-4 h-4" /> Gửi link đăng nhập</>}
+              </button>
+            </>
+          )}
+          <div className="text-center">
+            <button
+              type="button"
+              onClick={() => {
+                setLinkMode(false);
+                setLinkSent("");
+                setError("");
+              }}
+              className="text-xs font-semibold text-muted-foreground hover:text-navy"
+            >
+              ← Đăng nhập bằng mật khẩu
+            </button>
+          </div>
+        </form>
       </div>
     );
   }
@@ -198,6 +288,19 @@ export default function StaffLoginForm() {
           <Link to="/forgot-password" className="text-xs font-semibold text-muted-foreground hover:text-navy">
             Quên mật khẩu?
           </Link>
+        </div>
+
+        <div className="border-t pt-3 text-center">
+          <button
+            type="button"
+            onClick={() => {
+              setLinkMode(true);
+              setError("");
+            }}
+            className="text-xs font-semibold text-navy hover:underline"
+          >
+            Lần đầu dùng app? Đăng nhập lần đầu bằng email
+          </button>
         </div>
       </form>
 

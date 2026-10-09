@@ -62,7 +62,44 @@ export async function findPhotoByCode(code) {
   return data;
 }
 
+export async function fetchMembers(clubId) {
+  const { data, error } = await supabase.from("club_members").select("*").eq("club_id", clubId).order("full_name");
+  if (error) fail(error);
+  return data.sort((a, b) => a.full_name.localeCompare(b.full_name, "vi"));
+}
+
+// Tìm học sinh trong dữ liệu thể lực theo tên (khớp một phần, không dấu)
+export async function searchStudents(q) {
+  const { data, error } = await supabase.rpc("search_students", { p_q: q });
+  if (error) fail(error);
+  return data || [];
+}
+
 /* ------------------------------ ghi ------------------------------ */
+// member: { student_id?, full_name, class_name?, grade?, note? }
+export async function addMember(clubId, member) {
+  const { error } = await supabase.from("club_members").insert({ club_id: clubId, ...member, full_name: member.full_name.trim() });
+  if (error) {
+    if (error.code === "23505") throw new Error("Học sinh này đã có trong CLB.");
+    fail(error);
+  }
+}
+
+// Thêm nhiều học viên một lần (đã lọc trùng ở phía giao diện)
+export async function addMembers(clubId, members) {
+  if (!members.length) return;
+  const { error } = await supabase.from("club_members").insert(members.map((m) => ({ club_id: clubId, ...m, full_name: m.full_name.trim() })));
+  if (error) {
+    if (error.code === "23505") throw new Error("Có học sinh đã nằm trong CLB. Tải lại trang rồi thử lại.");
+    fail(error);
+  }
+}
+
+export async function removeMember(id) {
+  const { error } = await supabase.from("club_members").delete().eq("id", id);
+  if (error) fail(error);
+}
+
 export async function saveClub(id, fields, slots) {
   let clubId = id;
   if (id) {
@@ -139,6 +176,10 @@ export function useClubData() {
 
 export function useEvidence(range) {
   return useQuery({ queryKey: ["evidence", range.from, range.to, range.clubId || null], queryFn: () => fetchEvidence(range) });
+}
+
+export function useMembers(clubId) {
+  return useQuery({ queryKey: ["members", clubId], queryFn: () => fetchMembers(clubId), enabled: !!clubId });
 }
 
 export function useInvalidateClubs() {
