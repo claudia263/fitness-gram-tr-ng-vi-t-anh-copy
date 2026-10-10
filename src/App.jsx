@@ -29,7 +29,7 @@ import EvidenceArchive from '@/pages/EvidenceArchive';
 import EvidenceReview from '@/pages/EvidenceReview';
 import Staff from '@/pages/Staff';
 import MoetStandards from '@/pages/MoetStandards';
-import { CLUB_MANAGERS, REVIEWERS, STAFF_ROLES } from '@/lib/clubs/model';
+import { STAFF_ROLES } from '@/lib/clubs/model';
 import { startUsageClock } from '@/lib/usage';
 import { useEffect } from 'react';
 
@@ -69,10 +69,10 @@ const AuthenticatedApp = () => {
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="/admin/du-lieu" element={<AdminRoute><AdminData /></AdminRoute>} />
           <Route path="/clb" element={<StaffRoute roles={STAFF_ROLES}><Clubs /></StaffRoute>} />
-          <Route path="/clb/kho-anh" element={<StaffRoute roles={STAFF_ROLES}><EvidenceArchive /></StaffRoute>} />
-          <Route path="/clb/duyet" element={<StaffRoute roles={REVIEWERS}><EvidenceReview /></StaffRoute>} />
+          <Route path="/clb/kho-anh" element={<AdminRoute><EvidenceArchive /></AdminRoute>} />
+          <Route path="/clb/duyet" element={<AdminRoute><EvidenceReview /></AdminRoute>} />
           <Route path="/clb/:id" element={<StaffRoute roles={STAFF_ROLES}><ClubDetail /></StaffRoute>} />
-          <Route path="/can-bo" element={<StaffRoute roles={CLUB_MANAGERS}><Staff /></StaffRoute>} />
+          <Route path="/can-bo" element={<AdminRoute><Staff /></AdminRoute>} />
         </Route>
       </Route>
 

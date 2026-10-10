@@ -16,11 +16,12 @@ const STAFF = { label: "Cán bộ", to: "/can-bo", icon: Users };
 
 export const NAV_BY_ROLE = {
   parent: PARENT,
+  // Quản trị, Dữ liệu, Nhập liệu, Duyệt, Kho ảnh, Cán bộ: chỉ admin. Cán bộ khác chỉ vào CLB.
   // Điện thoại chỉ hiện 5 mục đầu ở thanh dưới
   admin: [{ label: "Quản trị", to: "/admin", icon: School }, { label: "Dữ liệu", to: "/admin/du-lieu", icon: Database }, { label: "Nhập liệu", to: "/teacher", icon: ClipboardEdit }, CLUBS, REVIEW, ARCHIVE, STAFF],
-  lead: [CLUBS, ARCHIVE, STAFF, MOET],
-  teacher: [CLUBS, ARCHIVE, MOET],
-  hr: [REVIEW, ARCHIVE, CLUBS],
+  lead: [CLUBS],
+  teacher: [CLUBS],
+  hr: [CLUBS],
 };
 
 // Mục đang mở = mục có đường dẫn dài nhất khớp với trang hiện tại

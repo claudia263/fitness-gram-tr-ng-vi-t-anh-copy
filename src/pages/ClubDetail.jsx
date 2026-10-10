@@ -164,7 +164,7 @@ function ScheduleTab({ club, sessions, now }) {
   );
 }
 
-function EvidenceTab({ club, sessions, canCapture, staffById, location, onSaved }) {
+function EvidenceTab({ club, sessions, canCapture, isAdmin, staffById, location, onSaved }) {
   const [viewer, setViewer] = useState(null);
   const recent = sessions.slice(0, 8);
   const entries = recent.flatMap((s) => s.photos.map((p) => ({ photo: p, club, status: s.status })));
@@ -183,9 +183,11 @@ function EvidenceTab({ club, sessions, canCapture, staffById, location, onSaved 
       <div className="fg-card min-w-0 p-5 sm:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-bold text-navy">Minh chứng gần đây</h3>
-          <Link to={`/clb/kho-anh?clb=${club.id}`} className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-navy hover:bg-navy-soft">
-            <Archive className="w-3.5 h-3.5" aria-hidden="true" /> Mở trong kho ảnh
-          </Link>
+          {isAdmin && (
+            <Link to={`/clb/kho-anh?clb=${club.id}`} className="inline-flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-semibold text-navy hover:bg-navy-soft">
+              <Archive className="w-3.5 h-3.5" aria-hidden="true" /> Mở trong kho ảnh
+            </Link>
+          )}
         </div>
         {recent.length === 0 ? (
           <p className="py-8 text-center text-sm text-muted-foreground">Chưa có ảnh minh chứng nào trong 60 ngày qua.</p>
@@ -368,7 +370,7 @@ export default function ClubDetail() {
           {tab === "schedule" && <ScheduleTab club={club} sessions={sessions} now={now} />}
           {tab === "students" && <ClubMembers club={club} canEdit={canCapture} />}
           {tab === "evidence" && (
-            <EvidenceTab club={club} sessions={sessions} canCapture={canCapture} staffById={staffById} location={location} onSaved={() => invalidate(["evidence"])} />
+            <EvidenceTab club={club} sessions={sessions} canCapture={canCapture} isAdmin={user?.role === "admin"} staffById={staffById} location={location} onSaved={() => invalidate(["evidence"])} />
           )}
         </div>
 

@@ -24,5 +24,5 @@ export function useRole() {
   return ctx;
 }
 
-export const ROLE_HOMES = { parent: "/", admin: "/admin", lead: "/clb", teacher: "/clb", hr: "/clb/duyet" };
+export const ROLE_HOMES = { parent: "/", admin: "/admin", lead: "/clb", teacher: "/clb", hr: "/clb" };
 export const ROLE_LABELS = { parent: "Phụ huynh", teacher: "Giáo viên", lead: "Tổ trưởng", hr: "Nhân sự", admin: "Quản trị" };
