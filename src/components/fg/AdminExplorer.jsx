@@ -3,6 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { X, ChevronLeft, Users, School, Loader2, Activity, Trash2, Pencil, Plus, CheckCircle2, AlertCircle } from "lucide-react";
 import { formatPlankTime } from "@/lib/fitness";
 import { pacerLevelFromLaps, pacerLapsFromLevel, getPacerLevelInfo } from "@/lib/pacerReference";
+import { MOET_TESTS } from "@/lib/moetNorms";
 
 export default function AdminExplorer({ open, type, students, classes, sessions, onClose, onRefresh }) {
   if (!open) return null;
@@ -317,6 +318,7 @@ function StudentResultForm({ student, sessions, onDone }) {
     sit_and_reach_cm: "",
     pushup_count: "",
     plank_seconds: "",
+    ...Object.fromEntries(MOET_TESTS.map((t) => [t.field, ""])),
     height_cm: "",
     weight_kg: "",
   });
@@ -341,6 +343,7 @@ function StudentResultForm({ student, sessions, onDone }) {
         sit_and_reach_cm: f.sit_and_reach_cm ?? "",
         pushup_count: f.pushup_count ?? "",
         plank_seconds: f.plank_seconds ?? "",
+        ...Object.fromEntries(MOET_TESTS.map((t) => [t.field, f[t.field] ?? ""])),
         height_cm: a.height_cm ?? "",
         weight_kg: a.weight_kg ?? "",
       });
@@ -373,6 +376,7 @@ function StudentResultForm({ student, sessions, onDone }) {
         sit_and_reach_cm: num(form.sit_and_reach_cm),
         pushup_count: num(form.pushup_count),
         plank_seconds: num(form.plank_seconds),
+        ...Object.fromEntries(MOET_TESTS.map((t) => [t.field, num(form[t.field]) ?? null])),
       };
       if (existingFit.length) {
         await base44.entities.FitnessResult.update(existingFit[0].id, fitData);
@@ -437,6 +441,15 @@ function StudentResultForm({ student, sessions, onDone }) {
           <NumInput label="Sit & Reach (cm)" value={form.sit_and_reach_cm} onChange={(v) => setForm({ ...form, sit_and_reach_cm: v })} />
           <NumInput label="Push-up (lần)" value={form.pushup_count} onChange={(v) => setForm({ ...form, pushup_count: v })} />
           <NumInput label="Plank (giây)" value={form.plank_seconds} onChange={(v) => setForm({ ...form, plank_seconds: v })} />
+        </div>
+      </div>
+
+      <div className="rounded-2xl p-4" style={{ background: "#F7F8FC" }}>
+        <div className="text-xs font-bold text-navy uppercase tracking-wide mb-3">Bài test Bộ GD&ĐT (QĐ 53)</div>
+        <div className="grid grid-cols-2 gap-3">
+          {MOET_TESTS.map((t) => (
+            <NumInput key={t.key} label={`${t.label}${t.required ? " ★" : ""} (${t.unit})`} value={form[t.field]} onChange={(v) => setForm({ ...form, [t.field]: v })} />
+          ))}
         </div>
       </div>
 

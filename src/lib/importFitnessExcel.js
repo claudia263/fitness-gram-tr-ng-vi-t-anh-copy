@@ -76,6 +76,8 @@ export async function importFitnessExcel(file, opts = {}, entities) {
     const iSitReach = col('Sit and Reach');
     const iPushup = col('Push-up');
     const iPlank = col('Plank');
+    // Bài test Bộ GD&ĐT (QĐ 53): chỉ ghi các cột có trong sheet
+    const moetCols = MOET_COLUMNS.map((m) => ({ ...m, i: header.findIndex((h) => m.match.test(plain(h))) })).filter((m) => m.i >= 0);
     if (iName < 0) continue;
 
     const cleanSheet = String(sheetName).trim();
@@ -127,12 +129,13 @@ export async function importFitnessExcel(file, opts = {}, entities) {
       const pushup = num(row[iPushup]);
       const plank = num(row[iPlank]);
       const pacer = parsePacer(row[iPacer]);
+      const moet = Object.fromEntries(moetCols.map((m) => [m.field, num(String(row[m.i] ?? '').replace(',', '.').trim())]));
 
       // PACER: tổng lượt (shuttles) → level tự tính từ bảng 15m PACER
       const pacerLaps = pacer.laps;
       const pacerLevel = pacerLaps != null ? pacerLevelFromLaps(pacerLaps) : pacer.level;
 
-      const hasFitness = [pacerLaps, pacerLevel, sitReach, pushup, plank].some((v) => v != null);
+      const hasFitness = [pacerLaps, pacerLevel, sitReach, pushup, plank, ...Object.values(moet)].some((v) => v != null);
       if (!hasFitness && height == null && weight == null) noDataCount++;
 
       rowRecords.push({
@@ -144,6 +147,7 @@ export async function importFitnessExcel(file, opts = {}, entities) {
         sitReach,
         pushup,
         plank,
+        moet,
         height,
         weight,
         sex,
@@ -192,6 +196,7 @@ export async function importFitnessExcel(file, opts = {}, entities) {
         sit_and_reach_cm: r.sitReach,
         pushup_count: r.pushup,
         plank_seconds: r.plank,
+        ...r.moet,
       };
       const existing = fitnessByStudent.get(r.studentId);
       if (existing) {
@@ -257,6 +262,24 @@ export async function importFitnessExcel(file, opts = {}, entities) {
     session_id: sessionId,
   };
 }
+
+// Cột bài test Bộ GD&ĐT, nhận theo tên (không dấu): "Bật xa tại chỗ (cm)", "Chạy 30m XPC", "Chạy tùy sức 5 phút"...
+const MOET_COLUMNS = [
+  { field: 'long_jump_cm', match: /bat xa/ },
+  { field: 'run_5min_m', match: /tuy suc|5 ?phut/ },
+  { field: 'situps_30s', match: /gap bung|nam ngua/ },
+  { field: 'sprint_30m_s', match: /chay 30 ?m|^30 ?m/ },
+  { field: 'grip_strength_kg', match: /bop tay/ },
+  { field: 'shuttle_4x10_s', match: /con thoi|4 ?x ?10/ },
+];
+const plain = (h) =>
+  String(h || '')
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/đ/g, 'd')
+    .replace(/Đ/g, 'D')
+    .toLowerCase()
+    .trim();
 
 function num(v) {
   if (v == null || v === '') return null;

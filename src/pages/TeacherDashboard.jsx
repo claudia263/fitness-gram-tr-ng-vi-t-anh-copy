@@ -6,7 +6,9 @@ import PageTransition from "@/components/fg/PageTransition";
 import SchoolNormsTab from "@/components/fg/SchoolNormsTab";
 import { track } from "@/lib/usage";
 import { defaultPacerType } from "@/lib/fitnessNorms";
-import { Save, Loader2, CheckCircle2, AlertCircle, ClipboardList, Users, Calendar, History, Download, Target } from "lucide-react";
+import { MOET_LEVELS, MOET_TESTS, evaluateMoet } from "@/lib/moetNorms";
+import MoetStandardsTable from "@/components/fg/MoetStandardsTable";
+import { Save, Loader2, CheckCircle2, AlertCircle, ClipboardList, Users, Calendar, History, Download, Target, Award } from "lucide-react";
 
 export default function TeacherDashboard() {
   const [tab, setTab] = useState("input");
@@ -50,6 +52,7 @@ export default function TeacherDashboard() {
     { key: "sessions", label: "Đợt kiểm tra", icon: Calendar },
     { key: "history", label: "Lịch sử", icon: History },
     { key: "norms", label: "So sánh chuẩn toàn trường", icon: Target },
+    { key: "moet", label: "Chuẩn Bộ GD&ĐT", icon: Award },
   ];
 
   return (
@@ -106,11 +109,62 @@ export default function TeacherDashboard() {
           <SessionsTab sessions={sessions} />
         ) : tab === "norms" ? (
           <SchoolNormsTab classes={classes} sessions={sessions} />
+        ) : tab === "moet" ? (
+          <div className="fg-card p-5 sm:p-6">
+            <h3 className="mb-1 font-bold text-navy">Bảng thành tích quy định xếp loại — QĐ 53/2008/QĐ-BGDĐT</h3>
+            <p className="mb-4 text-sm text-muted-foreground">Dùng để đối chiếu khi đo 4 bài của Bộ. App tự xếp loại khi nhập kết quả.</p>
+            <MoetStandardsTable />
+          </div>
         ) : (
           <HistoryTab students={students} sessions={sessions} />
         )}
       </div>
     </PageTransition>
+  );
+}
+
+const MOET_BLANK = Object.fromEntries(MOET_TESTS.map((t) => [t.field, ""]));
+const LEVEL_COLOR = { tot: "#047857", dat: "#B45309", chua_dat: "#BE123C" };
+
+// Ô nhập 4 bài của Bộ GD&ĐT (+ 2 bài tự chọn khác), hiện ngay mức Tốt / Đạt / Chưa đạt theo tuổi, giới
+function MoetFields({ form, set, errors, student, testDate }) {
+  const [more, setMore] = useState(() => MOET_TESTS.some((t) => !t.chosen && form[t.field] !== ""));
+  const ev = student ? evaluateMoet({ sex: student.sex, birthDate: student.birth_date, testDate, result: Object.fromEntries(MOET_TESTS.map((t) => [t.field, form[t.field] === "" ? null : Number(form[t.field])])) }) : null;
+  const tests = MOET_TESTS.filter((t) => t.chosen || more);
+  return (
+    <div className="mt-6 rounded-2xl p-4" style={{ background: "#F7F8FC" }}>
+      <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <div>
+          <div className="text-sm font-bold text-navy">Bài test Bộ GD&ĐT (QĐ 53/2008)</div>
+          <div className="text-[11px] text-muted-foreground">★ bắt buộc · {ev?.age != null ? `chuẩn ${ev.age} tuổi, ${student.sex === "female" ? "nữ" : "nam"}` : "chọn học sinh và đợt để xếp loại"}</div>
+        </div>
+        {ev?.overall ? (
+          <span className="rounded-full px-3 py-1 text-xs font-bold text-white" style={{ background: LEVEL_COLOR[ev.overall] }}>
+            Xếp loại: {MOET_LEVELS[ev.overall].label}
+          </span>
+        ) : ev?.measured ? (
+          <span className="text-[11px] text-muted-foreground">{ev.missing}</span>
+        ) : null}
+      </div>
+      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+        {tests.map((t) => {
+          const r = ev?.tests.find((x) => x.key === t.key);
+          return (
+            <NumField
+              key={t.key}
+              label={`${t.label}${t.required ? " ★" : ""} (${t.unit})`}
+              value={form[t.field]}
+              onChange={(v) => set(t.field, v)}
+              error={errors[t.field]}
+              hint={r?.level ? <span style={{ color: LEVEL_COLOR[r.level], fontWeight: 700 }}>{MOET_LEVELS[r.level].label}</span> : null}
+            />
+          );
+        })}
+      </div>
+      <button type="button" onClick={() => setMore((m) => !m)} className="mt-3 text-xs font-semibold text-navy hover:underline">
+        {more ? "Ẩn 2 bài trường không chọn" : "+ Lực bóp tay, chạy con thoi 4×10m (nếu có đo)"}
+      </button>
+    </div>
   );
 }
 
@@ -122,6 +176,7 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
     sit_and_reach_cm: "",
     pushup_count: "",
     plank_seconds: "",
+    ...MOET_BLANK,
     height_cm: "",
     weight_kg: "",
     fitness_comment: "",
@@ -157,6 +212,7 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
         sit_and_reach_cm: f.sit_and_reach_cm != null ? String(f.sit_and_reach_cm) : "",
         pushup_count: f.pushup_count != null ? String(f.pushup_count) : "",
         plank_seconds: f.plank_seconds != null ? String(f.plank_seconds) : "",
+        ...Object.fromEntries(MOET_TESTS.map((t) => [t.field, f[t.field] != null ? String(f[t.field]) : ""])),
         height_cm: a.height_cm != null ? String(a.height_cm) : "",
         weight_kg: a.weight_kg != null ? String(a.weight_kg) : "",
         fitness_comment: c.fitness_comment || "",
@@ -186,6 +242,7 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
     if (!num(form.pushup_count)) e.pushup_count = "Push-up không hợp lệ";
     if (!num(form.sit_and_reach_cm)) e.sit_and_reach_cm = "Sit & Reach không hợp lệ";
     if (!num(form.plank_seconds)) e.plank_seconds = "Plank không hợp lệ";
+    for (const t of MOET_TESTS) if (!num(form[t.field])) e[t.field] = `${t.label} không hợp lệ`;
     if (form.height_cm !== "" && (Number(form.height_cm) <= 0 || Number(form.height_cm) > 250)) e.height_cm = "Chiều cao 1–250 cm";
     if (form.weight_kg !== "" && (Number(form.weight_kg) <= 0 || Number(form.weight_kg) > 300)) e.weight_kg = "Cân nặng 1–300 kg";
     setErrors(e);
@@ -210,6 +267,7 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
         sit_and_reach_cm: toNum(form.sit_and_reach_cm),
         pushup_count: toNum(form.pushup_count),
         plank_seconds: toNum(form.plank_seconds),
+        ...Object.fromEntries(MOET_TESTS.map((t) => [t.field, toNum(form[t.field])])),
         teacher_id: "",
       };
       if (existing.length) {
@@ -377,6 +435,8 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
               </div>
             </div>
           </div>
+
+          <MoetFields form={form} set={set} errors={errors} student={student} testDate={sessions.find((x) => x.id === selectedSession)?.test_date} />
 
           <div className="mt-5 space-y-4">
             <TextField label="Nhận xét thể lực" value={form.fitness_comment} onChange={(v) => set("fitness_comment", v)} placeholder="VD: Học sinh có tiến bộ về sức bền..." />

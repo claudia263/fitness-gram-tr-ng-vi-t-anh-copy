@@ -8,6 +8,7 @@ import StudentProfileCard from "@/components/fg/StudentProfileCard";
 import EmptyState from "@/components/fg/EmptyState";
 import SkeletonCard from "@/components/fg/SkeletonCard";
 import FitnessDetailModal from "@/components/fg/FitnessDetailModal";
+import MoetResultCard from "@/components/fg/MoetResultCard";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
 
 const TESTS = [
@@ -106,6 +107,10 @@ export default function Results() {
             })}
           </div>
         )}
+
+        <div className="mb-6">
+          <MoetResultCard student={activeStudent} fitnessRows={fitnessRows} />
+        </div>
 
         {/* Growth trends */}
         {anthroRows.length > 0 && (

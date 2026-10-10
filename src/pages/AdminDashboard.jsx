@@ -223,6 +223,9 @@ function SessionForm({ onCreated }) {
             >
               <UploadCloud className="w-4 h-4" /> {file ? file.name : "Chọn file Excel (.xlsx)"}
             </button>
+            <p className="mt-2 text-[11px] leading-relaxed text-muted-foreground">
+              Cột FitnessGram: Tên học sinh, Giới tính, Ngày sinh, Chiều Cao, Cân nặng, Pacer, Sit and Reach, Push-up, Plank. Cột Bộ GD&ĐT (nếu có): Bật xa tại chỗ, Chạy tùy sức 5 phút, Nằm ngửa gập bụng, Chạy 30m (thêm Lực bóp tay, Chạy con thoi 4x10m nếu đo).
+            </p>
           </div>
 
           <div className="flex flex-col sm:flex-row gap-2 mt-4">

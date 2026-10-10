@@ -28,6 +28,7 @@ import ClubDetail from '@/pages/ClubDetail';
 import EvidenceArchive from '@/pages/EvidenceArchive';
 import EvidenceReview from '@/pages/EvidenceReview';
 import Staff from '@/pages/Staff';
+import MoetStandards from '@/pages/MoetStandards';
 import { CLUB_MANAGERS, REVIEWERS, STAFF_ROLES } from '@/lib/clubs/model';
 import { startUsageClock } from '@/lib/usage';
 import { useEffect } from 'react';
@@ -63,6 +64,7 @@ const AuthenticatedApp = () => {
           <Route path="/results" element={<Results />} />
           <Route path="/history" element={<History />} />
           <Route path="/profile" element={<Profile />} />
+          <Route path="/chuan-the-luc" element={<MoetStandards />} />
           <Route path="/teacher" element={<AdminRoute><TeacherDashboard /></AdminRoute>} />
           <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
           <Route path="/admin/du-lieu" element={<AdminRoute><AdminData /></AdminRoute>} />
