@@ -7,14 +7,14 @@ import { DOW_FULL, LEVELS, PLACES, ROLE_LABELS, SPORTS, SPORT_ORDER, WEEK_ORDER,
 const labelCls = "mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground";
 const inputCls = "fg-input h-10 w-full bg-white px-3 text-sm text-navy";
 
-function fromClub(club, now) {
+function fromClub(club, now, lockTeacher) {
   if (!club) {
     return {
       name: "",
       sport: "football",
       levels: ["TH"],
-      teacher_id: "",
-      teacher_name: "",
+      teacher_id: lockTeacher?.id || "",
+      teacher_name: lockTeacher?.full_name || "",
       expected_size: 20,
       starts_on: ymd(nextMonday(now)),
       ends_on: "",
@@ -26,7 +26,7 @@ function fromClub(club, now) {
     name: club.name,
     sport: club.sport,
     levels: club.levels,
-    teacher_id: club.teacher_id || "",
+    teacher_id: lockTeacher?.id || club.teacher_id || "",
     teacher_name: club.teacher_name || "",
     expected_size: club.expected_size ?? "",
     starts_on: club.starts_on || "",
@@ -36,8 +36,9 @@ function fromClub(club, now) {
   };
 }
 
-export default function ClubFormDialog({ open, club, clubs, staff, staffById, now, onClose, onSave }) {
-  const [f, setF] = useState(() => fromClub(club, now));
+// lockTeacher: giáo viên đang tự thêm / sửa CLB của mình → luôn gán CLB cho chính giáo viên đó
+export default function ClubFormDialog({ open, club, clubs, staff, staffById, now, lockTeacher = null, onClose, onSave }) {
+  const [f, setF] = useState(() => fromClub(club, now, lockTeacher));
   const [touched, setTouched] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
@@ -106,7 +107,7 @@ export default function ClubFormDialog({ open, club, clubs, staff, staffById, no
       <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto rounded-[22px] bg-white p-0 gap-0">
         <form onSubmit={submit} noValidate>
           <DialogHeader className="border-b px-5 py-4 text-left">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">Tổ trưởng Tổ Thể dục</p>
+            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{lockTeacher ? "Giáo viên phụ trách" : "Tổ trưởng Tổ Thể dục"}</p>
             <DialogTitle className="text-xl font-extrabold text-navy">{club ? `Sửa CLB ${club.name}` : "Thêm CLB phát sinh"}</DialogTitle>
             <DialogDescription>CLB hiện trong thời khoá biểu từ ngày áp dụng. Giáo viên được gán tài khoản mới chụp được minh chứng.</DialogDescription>
           </DialogHeader>
@@ -148,7 +149,7 @@ export default function ClubFormDialog({ open, club, clubs, staff, staffById, no
                 <label htmlFor="club-teacher-account" className={labelCls}>
                   Tài khoản giáo viên phụ trách
                 </label>
-                <select id="club-teacher-account" className={inputCls} value={f.teacher_id} onChange={(e) => set("teacher_id", e.target.value)}>
+                <select id="club-teacher-account" className={inputCls} value={f.teacher_id} disabled={!!lockTeacher} onChange={(e) => set("teacher_id", e.target.value)}>
                   <option value="">Chưa gán tài khoản</option>
                   {teachers.map((p) => (
                     <option key={p.id} value={p.id}>

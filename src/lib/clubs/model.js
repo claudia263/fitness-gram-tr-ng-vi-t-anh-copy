@@ -6,6 +6,12 @@ export const STAFF_ROLES = ["admin", "lead", "hr", "teacher"];
 export const ROLE_LABELS = { admin: "Quản trị", lead: "Tổ trưởng Tổ Thể dục", hr: "Phòng Nhân sự", teacher: "Giáo viên" };
 export const CLUB_MANAGERS = ["admin", "lead"];
 export const REVIEWERS = ["admin", "hr"];
+// Giáo viên được thêm CLB (tự phụ trách), sửa CLB mình phụ trách / tạo, xoá CLB phát sinh do mình tạo
+export const canAddClub = (user) => ["admin", "lead", "teacher"].includes(user?.role);
+export const canEditClub = (user, club) =>
+  CLUB_MANAGERS.includes(user?.role) || (user?.role === "teacher" && !!club && (club.teacher_id === user.id || club.created_by === user.id));
+export const canDeleteClub = (user, club) =>
+  club?.source === "manual" && (CLUB_MANAGERS.includes(user?.role) || (user?.role === "teacher" && club.created_by === user.id));
 
 // Màu từng môn theo quy ước màu trong TKB CLB của trường
 export const TONES = {

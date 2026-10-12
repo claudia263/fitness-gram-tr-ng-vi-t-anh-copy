@@ -7,7 +7,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/lib/AuthContext";
 import { deleteClub, saveClub, useClubData, useEvidence, useInvalidateClubs, useMembers, useSignedUrls } from "@/lib/clubs/api";
 import {
-  CLUB_MANAGERS, DOW_FULL, DOW_SHORT, SPORTS, WEEK_ORDER, durationText, fmtDate, fmtShortDate, hasStarted, levelLabel, nextSession, parseYmd, slotFor, teacherOf, toMin, toneOf, ymd,
+  CLUB_MANAGERS, canDeleteClub, canEditClub, DOW_FULL, DOW_SHORT, SPORTS, WEEK_ORDER, durationText, fmtDate, fmtShortDate, hasStarted, levelLabel, nextSession, parseYmd, slotFor, teacherOf, toMin, toneOf, ymd,
 } from "@/lib/clubs/model";
 import { StatusPill, SportIcon } from "@/components/clubs/ClubUi";
 import ClubFormDialog from "@/components/clubs/ClubFormDialog";
@@ -262,6 +262,8 @@ export default function ClubDetail() {
   const pending = sessions.filter((s) => s.status === "pending").length;
   const canManage = CLUB_MANAGERS.includes(user?.role);
   const canCapture = canManage || (user?.role === "teacher" && club.teacher_id === user?.id);
+  const canEdit = canEditClub(user, club);
+  const canDelete = canDeleteClub(user, club);
   const onKeyDown = (e) => {
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
     e.preventDefault();
@@ -278,12 +280,12 @@ export default function ClubDetail() {
           <Link to="/clb" className="inline-flex items-center gap-1 text-sm font-semibold text-muted-foreground hover:text-navy">
             <ChevronLeft className="w-4 h-4" aria-hidden="true" /> Tất cả CLB
           </Link>
-          {canManage && !confirmDelete && (
+          {canEdit && !confirmDelete && (
             <div className="flex gap-2">
               <button type="button" onClick={() => setEditing(true)} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-sm font-semibold text-navy ring-1 ring-[rgba(38,39,93,0.12)] hover:bg-navy-soft">
                 <Pencil className="w-4 h-4" aria-hidden="true" /> Sửa CLB
               </button>
-              {club.source === "manual" && (
+              {canDelete && (
                 <button type="button" onClick={() => setConfirmDelete(true)} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-sm font-semibold text-rose-700 ring-1 ring-rose-200 hover:bg-rose-50">
                   <Trash2 className="w-4 h-4" aria-hidden="true" /> Xoá
                 </button>
@@ -382,6 +384,7 @@ export default function ClubDetail() {
             staff={staff}
             staffById={staffById}
             now={now}
+            lockTeacher={user?.role === "teacher" ? user : null}
             onClose={() => setEditing(false)}
             onSave={async (fields, slots) => {
               await saveClub(club.id, fields, slots);

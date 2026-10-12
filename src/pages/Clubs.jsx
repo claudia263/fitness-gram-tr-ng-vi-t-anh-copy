@@ -5,7 +5,7 @@ import PageTransition from "@/components/fg/PageTransition";
 import { useAuth } from "@/lib/AuthContext";
 import { saveClub, useClubData, useEvidence, useInvalidateClubs } from "@/lib/clubs/api";
 import {
-  CLUB_MANAGERS, DOW_SHORT, LEVELS, SPORTS, SPORT_ORDER, UNASSIGNED, fmtShortDate, groupSlots, levelLabel, nextSession, parseYmd, schoolYear, teacherOf, toneOf, ymd,
+  canAddClub, DOW_SHORT, LEVELS, SPORTS, SPORT_ORDER, UNASSIGNED, fmtShortDate, groupSlots, levelLabel, nextSession, parseYmd, schoolYear, teacherOf, toneOf, ymd,
 } from "@/lib/clubs/model";
 import { PageHeader, SportIcon, chipCls } from "@/components/clubs/ClubUi";
 import WeeklyTimetable from "@/components/clubs/WeeklyTimetable";
@@ -82,7 +82,7 @@ export default function Clubs() {
   const [view, setView] = useState(() => sessionStorage.getItem("fg_clubs_view") || "list");
   const [level, setLevel] = useState("all");
   const [adding, setAdding] = useState(false);
-  const canManage = CLUB_MANAGERS.includes(user?.role);
+  const canAdd = canAddClub(user);
   useTrackView("xem_danh_sach_clb");
 
   const pendingByClub = useMemo(() => {
@@ -106,7 +106,7 @@ export default function Clubs() {
     <PageTransition>
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
         <PageHeader icon={Trophy} title="Câu lạc bộ thể thao" subtitle={`Năm học ${schoolYear(now)} · CS Gò Vấp · ${filtered.length} CLB · ${perWeek} buổi/tuần`}>
-          {canManage && (
+          {canAdd && (
             <button type="button" onClick={() => setAdding(true)} className="fg-btn-primary inline-flex h-10 items-center gap-2 px-4 text-sm">
               <Plus className="w-4 h-4" aria-hidden="true" /> Thêm CLB phát sinh
             </button>
@@ -175,6 +175,7 @@ export default function Clubs() {
             staff={staff}
             staffById={staffById}
             now={now}
+            lockTeacher={user?.role === "teacher" ? user : null}
             onClose={() => setAdding(false)}
             onSave={async (fields, slots) => {
               const id = await saveClub(null, fields, slots);
