@@ -10,6 +10,7 @@ import EmptyState from "@/components/fg/EmptyState";
 import SkeletonCard from "@/components/fg/SkeletonCard";
 import FitnessDetailModal from "@/components/fg/FitnessDetailModal";
 import HealthAdvice from "@/components/fg/HealthAdvice";
+import NormsComparison from "@/components/fg/NormsComparison";
 import ExportResultsButton from "@/components/fg/ExportResultsButton";
 import { Calendar } from "lucide-react";
 
@@ -108,6 +109,8 @@ export default function StudentResultsView({ student, onNameClick }) {
           </div>
         </>
       )}
+
+      {!loading && hasAnyData && <NormsComparison student={student} fitness={latestFitness} anthro={latestAnthro} />}
 
       {!loading && (latestAnthro || latestFitness) && (
         <HealthAdvice anthro={latestAnthro} fitness={latestFitness} sex={student?.sex} />
