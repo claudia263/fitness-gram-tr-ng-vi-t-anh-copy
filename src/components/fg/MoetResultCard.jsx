@@ -1,7 +1,8 @@
 // Kết quả theo chuẩn Bộ GD&ĐT (QĐ 53) của một học sinh: từng bài + xếp loại chung, lần kiểm tra mới nhất.
 import { Link } from "react-router-dom";
-import { Award, ChevronRight } from "lucide-react";
+import { Award, ChevronRight, TriangleAlert } from "lucide-react";
 import { MOET_LEVELS, evaluateMoet, formatThreshold, hasMoetData } from "@/lib/moetNorms";
+import { MOET_RISK_KEY, healthRisk } from "@/lib/healthRisk";
 
 const LEVEL_CLS = {
   tot: "bg-emerald-100 text-emerald-800",
@@ -21,6 +22,10 @@ export default function MoetResultCard({ student, fitnessRows }) {
   const latest = rows[rows.length - 1];
   const ev = latest ? evaluateMoet({ sex: student.sex, birthDate: student.birth_date, testDate: latest.session?.test_date, result: latest }) : null;
   const shown = ev ? ev.tests.filter((t) => t.chosen || t.value != null) : [];
+  // "Nếu không thay đổi" cho các năng lực có bài Chưa đạt (gộp bài cùng năng lực)
+  const failed = shown.filter((t) => t.level === "chua_dat");
+  const riskKeys = [...new Set(failed.map((t) => MOET_RISK_KEY[t.key]))];
+  const risks = riskKeys.map((k) => ({ ...healthRisk(k, ev?.age), tests: failed.filter((t) => MOET_RISK_KEY[t.key] === k).map((t) => t.label) }));
 
   return (
     <section className="fg-card p-5 sm:p-6" aria-labelledby="moet-title">
@@ -77,6 +82,23 @@ export default function MoetResultCard({ student, fitnessRows }) {
             </li>
           ))}
         </ul>
+      )}
+
+      {risks.length > 0 && (
+        <div className="mt-4 space-y-3">
+          {risks.map((r) => (
+            <div key={r.key} className="rounded-xl px-3 py-2.5" style={{ background: "rgba(192, 57, 43, 0.06)", border: "1px solid rgba(192, 57, 43, 0.15)" }}>
+              <div className="mb-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide" style={{ color: "#C0392B" }}>
+                <TriangleAlert className="h-3.5 w-3.5" aria-hidden="true" /> Nếu không thay đổi · {r.tests.join(", ")}
+              </div>
+              <p className="text-xs leading-relaxed text-navy">{r.text}</p>
+              <p className="mt-1.5 text-xs font-medium text-navy">
+                <b>Có thể làm ngay:</b> {r.action}
+              </p>
+              <p className="mt-1 text-[10px] text-muted-foreground">{r.evidenceLabel} · Đây là nguy cơ theo nghiên cứu, không phải chẩn đoán.</p>
+            </div>
+          ))}
+        </div>
       )}
 
       <Link to="/chuan-the-luc" className="mt-4 inline-flex items-center gap-1 text-sm font-semibold text-navy hover:underline">

@@ -7,6 +7,7 @@ import {
 } from "@/lib/fitnessNorms";
 import { formatPlankTime } from "@/lib/fitness";
 import NormCard from "@/components/fg/NormCard";
+import { RISK_SOURCES, bmiRiskKey, healthRisk } from "@/lib/healthRisk";
 
 // Gợi ý ngắn, khích lệ — hiển thị dưới các bài "Cần cải thiện"
 const TIPS = {
@@ -36,6 +37,16 @@ export default function NormsComparison({ student, fitness, anthro }) {
   });
 
   const pacer = ev.pacer;
+  // Khung "Nếu không thay đổi" cho chỉ số chưa đạt
+  const notMet = (x) => x && (x.status === "improve" || x.status === "risk");
+  const risks = {
+    bmi: ev.bmi ? healthRisk(bmiRiskKey(ev.bmi.z), ev.ageYears) : null,
+    pacer: notMet(pacer) ? healthRisk("endurance", ev.ageYears) : null,
+    pushup: notMet(ev.pushup) ? healthRisk("muscle", ev.ageYears) : null,
+    sitReach: notMet(ev.sitReach) ? healthRisk("flexibility", ev.ageYears) : null,
+    plank: ev.plank && ev.plank.median != null && ev.plank.value < ev.plank.median ? healthRisk("core", ev.ageYears) : null,
+  };
+  const usedSources = RISK_SOURCES.filter((s) => Object.values(risks).some((r) => r && r.sources.includes(s.key)));
   const showWorldBar = pacer && pacer.percentile != null;
   const sitReachMinCm = ev.sitReach && ev.sitReach.minInch != null ? Math.round(ev.sitReach.minInch * 2.54 * 10) / 10 : null;
 
@@ -55,6 +66,7 @@ export default function NormsComparison({ student, fitness, anthro }) {
             status={ev.bmi.status}
             meta={ev.bmi.z != null ? `Z-score WHO: ${ev.bmi.z.toFixed(2)} · ${ev.bmi.nutritionLabel}` : "Chưa đủ dữ liệu để tính Z-score"}
             tip={TIPS.bmi}
+            risk={risks.bmi}
           />
         )}
 
@@ -67,6 +79,7 @@ export default function NormsComparison({ student, fitness, anthro }) {
             status={pacer.status}
             meta={pacer.hfzMinLaps != null ? `Chuẩn FitnessGram (20m): ≥ ${pacer.hfzMinLaps} lượt` : null}
             tip={TIPS.pacer}
+            risk={risks.pacer}
           >
             {showWorldBar ? (
               <div className="space-y-1.5">
@@ -104,6 +117,7 @@ export default function NormsComparison({ student, fitness, anthro }) {
             status={ev.pushup.status}
             meta={ev.pushup.min != null ? `Chuẩn FitnessGram: ≥ ${ev.pushup.min} lần` : null}
             tip={TIPS.pushup}
+            risk={risks.pushup}
           />
         )}
 
@@ -116,6 +130,7 @@ export default function NormsComparison({ student, fitness, anthro }) {
             status={ev.sitReach.status}
             meta={ev.sitReach.minInch != null ? `Chuẩn FitnessGram: ≥ ${ev.sitReach.minInch} inch (~${sitReachMinCm} cm)` : null}
             tip={TIPS.sitReach}
+            risk={risks.sitReach}
           />
         )}
 
@@ -127,9 +142,24 @@ export default function NormsComparison({ student, fitness, anthro }) {
             status={ev.plank.status}
             note={PLANK_REFERENCE_NOTE}
             meta={ev.plank.median != null ? `Trung vị cùng tuổi và giới: ${ev.plank.median} giây` : null}
+            risk={risks.plank}
           />
         )}
       </div>
+
+      {usedSources.length > 0 && (
+        <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+          “Nếu không thay đổi” là nguy cơ theo nghiên cứu, không phải chẩn đoán. Nguồn:{" "}
+          {usedSources.map((s, i) => (
+            <span key={s.key}>
+              {i > 0 && " · "}
+              <a href={s.url} target="_blank" rel="noreferrer" className="underline underline-offset-2 hover:text-navy">
+                {s.label}
+              </a>
+            </span>
+          ))}
+        </p>
+      )}
     </section>
   );
 }
