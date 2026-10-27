@@ -1,22 +1,44 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useEffect, useState } from "react";
+import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import LoginVisual from "@/components/fg/LoginVisual";
 import LoginForm from "@/components/fg/LoginForm";
 import StaffLoginForm from "@/components/fg/StaffLoginForm";
+import StudentLoginForm from "@/components/fg/StudentLoginForm";
+import { STUDENT_FLAG, fetchPublicSettings, isStudentEmail } from "@/lib/studentAuth";
+import { useAuth } from "@/lib/AuthContext";
 import { USAGE_NOTICE, track } from "@/lib/usage";
 
-export default function Login() {
+export const STAFF_LOGIN_PATH = "/dang-nhap-can-bo";
+
+// staff = false: trang phụ huynh / học sinh (/login); staff = true: trang riêng của cán bộ nhà trường
+export default function Login({ staff = false }) {
   const reduce = useReducedMotion();
+  const location = useLocation();
   const navigate = useNavigate();
   const [leaving, setLeaving] = useState(false);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
-  // Quay lại từ đăng nhập Google (hoặc link ?staff=1) → mở thẳng tab cán bộ
-  const [mode, setMode] = useState(() =>
-    new URLSearchParams(window.location.search).get("staff") || sessionStorage.getItem("fg_google_login") ? "staff" : "parent"
-  );
+  const mode = staff ? "staff" : "parent";
+  // Đăng nhập email học sinh: bắt buộc khi admin bật (student_login), hoặc phụ huynh tự chọn
+  const { user } = useAuth();
+  const returningStudent = !!(new URLSearchParams(window.location.search).get("hoc-sinh") || sessionStorage.getItem(STUDENT_FLAG) || isStudentEmail(user?.email));
+  const [settings, setSettings] = useState(null);
+  const [useEmail, setUseEmail] = useState(returningStudent);
+  useEffect(() => {
+    fetchPublicSettings().then(setSettings);
+  }, []);
+  const studentLogin = settings?.student_login || useEmail;
+  // Quay lại từ đăng nhập Google / link email của cán bộ (/login?staff=1) → chuyển sang trang cán bộ
+  if (!staff && (new URLSearchParams(location.search).get("staff") || sessionStorage.getItem("fg_google_login"))) {
+    return <Navigate to={{ pathname: STAFF_LOGIN_PATH, search: location.search, hash: location.hash }} replace />;
+  }
+
+  const enterResults = () => {
+    setLeaving(true);
+    setTimeout(() => navigate("/"), 300);
+  };
 
   const handleSubmit = async (name) => {
     setBusy(true);
@@ -48,37 +70,47 @@ export default function Login() {
         transition={{ duration: reduce ? 0.2 : 0.5 }}
         className="absolute inset-0"
       >
-        <LoginVisual formOpen>
+        <LoginVisual
+          formOpen
+          title={staff ? <>Cổng làm việc<br />dành cho cán bộ nhà trường</> : undefined}
+          subtitle={staff ? "Đăng nhập bằng tài khoản của nhà trường để quản lý dữ liệu thể chất và câu lạc bộ." : undefined}
+        >
           <div className="w-full max-w-sm mx-auto">
-            <div className="flex gap-1 p-1 rounded-2xl mb-4" style={{ background: "rgba(255,255,255,0.12)" }}>
-              {[
-                { key: "parent", label: "Phụ huynh" },
-                { key: "staff", label: "Cán bộ nhà trường" },
-              ].map((t) => (
-                <button
-                  key={t.key}
-                  type="button"
-                  onClick={() => setMode(t.key)}
-                  className="flex-1 h-10 rounded-xl text-sm font-semibold transition-colors"
-                  style={
-                    mode === t.key
-                      ? { background: "#F9DD0E", color: "#26275D" }
-                      : { background: "transparent", color: "rgba(255,255,255,0.75)" }
-                  }
-                >
-                  {t.label}
-                </button>
-              ))}
-            </div>
-
             {mode === "parent" ? (
-              <LoginForm onSubmit={handleSubmit} busy={busy} error={error} />
+              !settings && !returningStudent ? (
+                <div className="fg-card h-40 w-full max-w-sm mx-auto fg-skeleton" />
+              ) : studentLogin ? (
+                <>
+                  <StudentLoginForm onEntered={enterResults} />
+                  {!settings?.student_login && (
+                    <button type="button" onClick={() => setUseEmail(false)} className="mt-3 block w-full text-center text-xs font-semibold" style={{ color: "rgba(255,255,255,0.8)" }}>
+                      ← Tra cứu bằng họ tên học sinh
+                    </button>
+                  )}
+                </>
+              ) : (
+                <>
+                  <LoginForm onSubmit={handleSubmit} busy={busy} error={error} />
+                  <button type="button" onClick={() => setUseEmail(true)} className="mt-3 block w-full text-center text-xs font-semibold underline-offset-2 hover:underline" style={{ color: "rgba(255,255,255,0.85)" }}>
+                    Có email học sinh @student.truongvietanh.com? Đăng nhập bằng email
+                  </button>
+                </>
+              )
             ) : (
               <StaffLoginForm />
             )}
             <p className="mt-4 text-center text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.6)" }}>
               {USAGE_NOTICE}
             </p>
+            {staff ? (
+              <Link to="/login" className="mt-3 block text-center text-xs font-semibold hover:underline" style={{ color: "rgba(255,255,255,0.8)" }}>
+                ← Về trang phụ huynh / học sinh
+              </Link>
+            ) : (
+              <Link to={STAFF_LOGIN_PATH} className="mt-5 block text-center text-[11px] hover:underline" style={{ color: "rgba(255,255,255,0.45)" }}>
+                Dành cho cán bộ nhà trường
+              </Link>
+            )}
           </div>
         </LoginVisual>
       </motion.div>

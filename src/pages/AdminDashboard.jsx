@@ -1,40 +1,62 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useMemo, useState, useRef } from "react";
+import { Link } from "react-router-dom";
 import { importFitnessExcel } from "@/lib/importFitnessExcel";
 import { base44 } from "@/api/base44Client";
 import PageTransition from "@/components/fg/PageTransition";
 import AdminExplorer from "@/components/fg/AdminExplorer";
+import StudentEmailPanel from "@/components/fg/StudentEmailPanel";
 import { track, useTrackView } from "@/lib/usage";
-import { Users, GraduationCap, School, ClipboardList, Plus, Loader2, CheckCircle2, UploadCloud, AlertCircle, FileSpreadsheet } from "lucide-react";
+import { campusLabel, campusesOf, sessionDateRange } from "@/lib/campus";
+import { Users, School, ClipboardList, Plus, Loader2, CheckCircle2, UploadCloud, AlertCircle, FileSpreadsheet, ClipboardCheck, Pencil } from "lucide-react";
 
 export default function AdminDashboard() {
-  const [stats, setStats] = useState({ students: 0, teachers: 0, classes: 0, sessions: 0, fitness: 0, anthro: 0 });
   const [students, setStudents] = useState([]);
-  const [teachers, setTeachers] = useState([]);
   const [classes, setClasses] = useState([]);
   const [sessions, setSessions] = useState([]);
+  const [measured, setMeasured] = useState({}); // session_id → Set(student_id) đã có kết quả
   const [loading, setLoading] = useState(true);
   useTrackView("xem_quan_tri");
   const [showSessionForm, setShowSessionForm] = useState(false);
   const [explorer, setExplorer] = useState(null); // null | "students" | "classes"
 
   const loadAll = async () => {
-    const [st, te, cl, se, fi, an] = await Promise.all([
-      base44.entities.Student.list(null, 2000),
-      base44.entities.Teacher.list(null, 500),
-      base44.entities.Class.list(null, 500),
+    const [st, cl, se, fi, an] = await Promise.all([
+      base44.entities.Student.list(null, 20000),
+      base44.entities.Class.list(null, 2000),
       base44.entities.TestSession.list("-test_date", 500),
-      base44.entities.FitnessResult.list(null, 1),
-      base44.entities.AnthropometricResult.list(null, 1),
+      base44.entities.FitnessResult.list(null, 50000),
+      base44.entities.AnthropometricResult.list(null, 50000),
     ]);
+    const m = {};
+    [...fi, ...an].forEach((r) => (m[r.session_id] = m[r.session_id] || new Set()).add(r.student_id));
     setStudents(st);
-    setTeachers(te);
-    setClasses(cl.sort((a, b) => (a.grade || "").localeCompare(b.grade || "") || (a.name || "").localeCompare(b.name || "")));
+    setClasses(cl.sort((a, b) => campusLabel(a.campus).localeCompare(campusLabel(b.campus), "vi") || (Number(a.grade) || 0) - (Number(b.grade) || 0) || (a.name || "").localeCompare(b.name || "")));
     setSessions(se);
-    setStats({ students: st.length, teachers: te.length, classes: cl.length, sessions: se.length, fitness: fi.length, anthro: an.length });
+    setMeasured(m);
     setLoading(false);
   };
 
   useEffect(() => { loadAll(); }, []);
+
+  const campuses = useMemo(() => campusesOf(students, classes, sessions), [students, classes, sessions]);
+  const latestYear = useMemo(() => [...new Set(sessions.map((s) => s.school_year))].sort().pop() || null, [sessions]);
+
+  // Gom đợt: (năm học, đợt số) → các lần đo của từng cơ sở
+  const rounds = useMemo(() => {
+    const map = new Map();
+    for (const s of sessions) {
+      const key = `${s.school_year}|${s.round_no ?? "?"}`;
+      if (!map.has(key)) map.set(key, { key, school_year: s.school_year, round_no: s.round_no, semester: s.semester, sessions: [] });
+      map.get(key).sessions.push(s);
+    }
+    return [...map.values()].sort((a, b) => (b.school_year || "").localeCompare(a.school_year || "") || (b.round_no ?? 0) - (a.round_no ?? 0));
+  }, [sessions]);
+  const yearRounds = rounds.filter((r) => r.school_year === latestYear);
+  const latestRound = yearRounds[0] || null;
+
+  const byCampus = (list) => campuses.map((c) => ({ label: campusLabel(c), value: list.filter((x) => x.campus === c).length }));
+  const measuredInRound = (round, campus) =>
+    round ? round.sessions.filter((s) => !campus || s.campus === campus).reduce((n, s) => n + (measured[s.id]?.size || 0), 0) : 0;
 
   return (
     <PageTransition>
@@ -45,53 +67,99 @@ export default function AdminDashboard() {
           </div>
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-navy">Admin</h1>
-            <p className="text-sm text-muted-foreground">Tổng quan hệ thống Fitness Gram — Trường Việt Anh</p>
+            <p className="text-sm text-muted-foreground">
+              Tổng quan hệ thống Fitness Gram — Trường Việt Anh · {campuses.length} cơ sở{latestYear ? ` · Năm học ${latestYear}` : ""}
+            </p>
           </div>
         </div>
 
         {loading ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            {[0, 1, 2, 3].map((i) => <div key={i} className="fg-skeleton" style={{ height: 110, borderRadius: 22 }} />)}
+            {[0, 1, 2, 3].map((i) => <div key={i} className="fg-skeleton" style={{ height: 150, borderRadius: 22 }} />)}
           </div>
         ) : (
           <>
-            {/* Stat cards */}
-            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <StatCard icon={Users} label="Học sinh" value={stats.students} onClick={() => setExplorer("students")} clickable />
-              <StatCard icon={GraduationCap} label="Giáo viên" value={stats.teachers} />
-              <StatCard icon={School} label="Lớp học" value={stats.classes} onClick={() => setExplorer("classes")} clickable />
-              <StatCard icon={ClipboardList} label="Đợt kiểm tra" value={stats.sessions} />
+            {/* Tổng toàn hệ thống, chia theo cơ sở */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+              <StatCard icon={Users} label="Học sinh toàn hệ thống" value={students.length} lines={byCampus(students)} onClick={() => setExplorer("students")} clickable />
+              <StatCard icon={School} label="Lớp học" value={classes.length} lines={byCampus(classes)} onClick={() => setExplorer("classes")} clickable />
+              <StatCard
+                icon={ClipboardList}
+                label={`Đợt kiểm tra${latestYear ? ` · ${latestYear}` : ""}`}
+                value={`${yearRounds.length} đợt`}
+                lines={campuses.map((c) => {
+                  const s = latestRound?.sessions.find((x) => x.campus === c);
+                  return { label: campusLabel(c), value: s ? `Đợt ${latestRound.round_no ?? "?"} · ${sessionDateRange(s)}` : "Chưa đo" };
+                })}
+              />
+              <StatCard
+                icon={ClipboardCheck}
+                label={latestRound ? `Đã có kết quả · Đợt ${latestRound.round_no ?? "?"}` : "Đã có kết quả"}
+                value={`${measuredInRound(latestRound)}/${students.length}`}
+                lines={campuses.map((c) => ({ label: campusLabel(c), value: `${measuredInRound(latestRound, c)}/${students.filter((x) => x.campus === c).length}` }))}
+              />
             </div>
 
-            {/* Create session */}
+            <StudentEmailPanel students={students} classes={classes} onSaved={loadAll} />
+
+            {/* Đợt kiểm tra: mỗi đợt chung của năm học, chia theo cơ sở */}
             <div className="fg-card p-5 sm:p-6 mb-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="font-bold text-navy">Quản lý đợt kiểm tra</h3>
-                <button
-                  onClick={() => setShowSessionForm((s) => !s)}
-                  className="fg-btn-secondary flex items-center gap-2 px-4 h-10 text-sm"
-                >
-                  <Plus className="w-4 h-4" /> Tạo đợt kiểm tra
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+                <div>
+                  <h3 className="font-bold text-navy">Quản lý đợt kiểm tra</h3>
+                  <p className="text-xs text-muted-foreground">Mỗi đợt đo chung của năm học, chia theo từng cơ sở</p>
+                </div>
+                <button onClick={() => setShowSessionForm((s) => !s)} className="fg-btn-secondary flex items-center gap-2 px-4 h-10 text-sm">
+                  <Plus className="w-4 h-4" /> Tạo đợt / nhập dữ liệu cơ sở
                 </button>
               </div>
-              {showSessionForm && <SessionForm onCreated={() => { setShowSessionForm(false); loadAll(); }} />}
-              <div className="space-y-2 mt-4">
-                {sessions.map((s) => (
-                  <div key={s.id} className="flex items-center justify-between py-3 px-4 rounded-xl" style={{ background: "#F7F8FC" }}>
-                    <div>
-                      <div className="font-semibold text-navy text-sm">{s.name}</div>
-                      <div className="text-xs text-muted-foreground">{s.semester} · {s.school_year}</div>
-                    </div>
-                    <span className="text-xs font-semibold text-navy">{formatDate(s.test_date)}</span>
-                  </div>
-                ))}
-              </div>
+              {showSessionForm && <SessionForm campuses={campuses} sessions={sessions} latestYear={latestYear} onCreated={() => { setShowSessionForm(false); loadAll(); }} />}
+              {rounds.length === 0 ? (
+                <p className="text-sm text-muted-foreground">Chưa có đợt kiểm tra nào.</p>
+              ) : (
+                <div className="space-y-4">
+                  {rounds.map((r) => {
+                    const done = campuses.filter((c) => r.sessions.some((s) => s.campus === c));
+                    return (
+                      <div key={r.key} className="rounded-2xl p-4" style={{ background: "#F7F8FC" }}>
+                        <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
+                          <div className="font-bold text-navy">
+                            {r.round_no ? `Đợt ${r.round_no}` : "Chưa xếp đợt"} <span className="font-medium text-muted-foreground text-sm">· {r.semester} · Năm học {r.school_year}</span>
+                          </div>
+                          <span className="text-xs font-semibold text-navy">{done.length}/{campuses.length} cơ sở đã đo</span>
+                        </div>
+                        <div className="space-y-2">
+                          {r.sessions.map((s) => (
+                            <div key={s.id} className="flex flex-wrap items-center justify-between gap-x-4 gap-y-1 rounded-xl bg-white px-4 py-3">
+                              <div className="min-w-0">
+                                <div className="font-semibold text-navy text-sm">{campusLabel(s.campus)}</div>
+                                <div className="text-xs text-muted-foreground truncate">{s.name}</div>
+                              </div>
+                              <div className="flex items-center gap-4 text-sm">
+                                <span className="font-semibold text-navy tabular-nums">{sessionDateRange(s)}</span>
+                                <span className="text-xs text-muted-foreground tabular-nums">{measured[s.id]?.size || 0} học sinh có kết quả</span>
+                                <Link to="/admin/du-lieu?bang=test_sessions" title="Sửa đợt (ngày, cơ sở, đợt số)" aria-label={`Sửa đợt ${s.name}`} className="rounded-lg p-1.5 text-muted-foreground hover:bg-navy-soft hover:text-navy">
+                                  <Pencil className="w-4 h-4" />
+                                </Link>
+                              </div>
+                            </div>
+                          ))}
+                          {campuses.filter((c) => !done.includes(c)).map((c) => (
+                            <div key={c} className="rounded-xl px-4 py-2.5 text-sm text-muted-foreground" style={{ border: "1px dashed rgba(38,39,93,0.18)" }}>
+                              {campusLabel(c)} — chưa đo đợt này
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
 
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-              <ListCard title="Học sinh" icon={Users} items={students.map((s) => ({ id: s.id, primary: s.full_name, secondary: `Lớp ${s.grade} · ${s.sex === "female" ? "Nữ" : "Nam"}` }))} />
-              <ListCard title="Giáo viên" icon={GraduationCap} items={teachers.map((t) => ({ id: t.id, primary: t.full_name, secondary: t.email }))} />
-              <ListCard title="Lớp học" icon={School} items={classes.map((c) => ({ id: c.id, primary: c.name, secondary: `Khối ${c.grade} · ${c.school_year}${c.campus ? " · " + c.campus : ""}` }))} />
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+              <ListCard title="Học sinh" icon={Users} items={students.map((s) => ({ id: s.id, primary: s.full_name, secondary: `${campusLabel(s.campus)} · Lớp ${s.grade} · ${s.sex === "female" ? "Nữ" : "Nam"}` }))} />
+              <ListCard title="Lớp học" icon={School} items={classes.map((c) => ({ id: c.id, primary: c.name, secondary: `${campusLabel(c.campus)} · Khối ${c.grade} · ${c.school_year}` }))} />
             </div>
           </>
         )}
@@ -110,15 +178,27 @@ export default function AdminDashboard() {
   );
 }
 
-function SessionForm({ onCreated }) {
-  const [form, setForm] = useState({ name: "", test_date: "", semester: "Học kỳ I", school_year: "2026–2027", campus: "", notes: "" });
+// Đợt số gợi ý: đợt mới nhất của năm học mà cơ sở này chưa đo, nếu không có thì đợt kế tiếp
+function suggestRound(sessions, year, campus) {
+  const inYear = sessions.filter((s) => s.school_year === year && s.round_no);
+  const max = Math.max(0, ...inYear.map((s) => s.round_no));
+  if (!max) return 1;
+  return inYear.some((s) => s.round_no === max && s.campus === campus) ? max + 1 : max;
+}
+
+function SessionForm({ campuses, sessions, latestYear, onCreated }) {
+  const year0 = latestYear || "2026–2027";
+  const [form, setForm] = useState(() => ({ name: "", test_date: "", end_date: "", semester: "Học kỳ I", school_year: year0, campus: campuses[0] || "", round_no: String(suggestRound(sessions, year0, campuses[0] || "")), notes: "" }));
+  const [customCampus, setCustomCampus] = useState(campuses.length === 0);
+  const setCampus = (campus) => setForm((f) => ({ ...f, campus, round_no: String(suggestRound(sessions, f.school_year, campus)) }));
   const [file, setFile] = useState(null);
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(null);
   const [error, setError] = useState("");
   const inputRef = useRef(null);
 
-  const canCreate = form.name && form.test_date;
+  const canCreate = form.name && form.test_date && form.campus.trim() && (!form.end_date || form.end_date >= form.test_date);
+  const sessionMeta = { campus: form.campus.trim(), round_no: form.round_no ? Number(form.round_no) : null, end_date: form.end_date || null };
 
   const runImport = async () => {
     if (!canCreate || !file) return;
@@ -127,7 +207,7 @@ function SessionForm({ onCreated }) {
     setDone(null);
     try {
       const res = await importFitnessExcel(file, {
-        campus: form.campus || "CS GVP",
+        ...sessionMeta,
         school_year: form.school_year,
         session_name: form.name,
         test_date: form.test_date,
@@ -152,6 +232,7 @@ function SessionForm({ onCreated }) {
     setError("");
     try {
       await base44.entities.TestSession.create({
+        ...sessionMeta,
         name: form.name,
         test_date: form.test_date,
         semester: form.semester,
@@ -185,8 +266,25 @@ function SessionForm({ onCreated }) {
       ) : (
         <>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <Input label="Tên đợt kiểm tra" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="VD: Đợt kiểm tra HKI 2026-2027" />
-            <Input label="Ngày kiểm tra" type="date" value={form.test_date} onChange={(v) => setForm({ ...form, test_date: v })} />
+            <div>
+              <label className="block text-xs font-semibold text-navy mb-1.5">Cơ sở</label>
+              {customCampus ? (
+                <input value={form.campus} onChange={(e) => setCampus(e.target.value)} placeholder="VD: CS BT" className="fg-input w-full h-11 px-3 text-sm font-medium text-navy" />
+              ) : (
+                <select value={form.campus} onChange={(e) => (e.target.value === "__new__" ? (setCustomCampus(true), setCampus("")) : setCampus(e.target.value))} className="fg-input w-full h-11 px-3 text-sm font-medium text-navy bg-white">
+                  {campuses.map((c) => (
+                    <option key={c} value={c}>{campusLabel(c)} ({c})</option>
+                  ))}
+                  <option value="__new__">+ Cơ sở khác…</option>
+                </select>
+              )}
+            </div>
+            <Input label="Đợt số (chung cho các cơ sở)" type="number" value={form.round_no} onChange={(v) => setForm({ ...form, round_no: v })} placeholder="1" />
+            <Input label="Tên đợt kiểm tra" value={form.name} onChange={(v) => setForm({ ...form, name: v })} placeholder="VD: Kiểm tra Fitness Đợt 1 – CS Gò Vấp" />
+            <div className="grid grid-cols-2 gap-2">
+              <Input label="Từ ngày" type="date" value={form.test_date} onChange={(v) => setForm({ ...form, test_date: v })} />
+              <Input label="Đến ngày" type="date" value={form.end_date} onChange={(v) => setForm({ ...form, end_date: v })} />
+            </div>
             <div>
               <label className="block text-xs font-semibold text-navy mb-1.5">Học kỳ</label>
               <select value={form.semester} onChange={(e) => setForm({ ...form, semester: e.target.value })} className="fg-input w-full h-11 px-3 text-sm font-medium text-navy bg-white">
@@ -195,7 +293,6 @@ function SessionForm({ onCreated }) {
               </select>
             </div>
             <Input label="Năm học" value={form.school_year} onChange={(v) => setForm({ ...form, school_year: v })} />
-            <Input label="Cơ sở" value={form.campus} onChange={(v) => setForm({ ...form, campus: v })} placeholder="VD: CS GVP" />
             <div className="sm:col-span-2">
               <Input label="Ghi chú" value={form.notes} onChange={(v) => setForm({ ...form, notes: v })} placeholder="Ghi chú (tùy chọn)" />
             </div>
@@ -269,20 +366,28 @@ function Input({ label, value, onChange, type = "text", placeholder }) {
   );
 }
 
-function StatCard({ icon: Icon, label, value, onClick, clickable }) {
+function StatCard({ icon: Icon, label, value, lines = [], onClick, clickable }) {
   const Comp = clickable ? "button" : "div";
   return (
     <Comp
       onClick={onClick}
       className={`fg-card p-5 text-left w-full ${clickable ? "fg-card-hover cursor-pointer" : ""}`}
     >
-      <div className="flex items-center justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: "#F9DD0E", color: "#26275D" }}>
-          <Icon className="w-5 h-5" />
-        </div>
+      <div className="w-10 h-10 rounded-xl flex items-center justify-center mb-3" style={{ background: "#F9DD0E", color: "#26275D" }}>
+        <Icon className="w-5 h-5" />
       </div>
       <div className="text-3xl font-extrabold text-navy tabular-nums">{value}</div>
       <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{label}</div>
+      {lines.length > 0 && (
+        <div className="mt-3 space-y-1 border-t pt-2.5" style={{ borderColor: "rgba(38,39,93,0.08)" }}>
+          {lines.map((l) => (
+            <div key={l.label} className="flex items-baseline justify-between gap-2 text-xs">
+              <span className="text-muted-foreground truncate">{l.label}</span>
+              <span className="font-bold text-navy tabular-nums whitespace-nowrap">{l.value}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </Comp>
   );
 }

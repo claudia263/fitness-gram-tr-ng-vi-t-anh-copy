@@ -5,7 +5,10 @@ import { computeZScore, nutritionalStatusFromZScore } from "@/lib/whoReference";
 
 // Load a student's full fitness history (results + anthropometric + comments + sessions)
 export async function loadStudentBundle(studentId) {
-  const { fitness, anthro, comments, sessions } = await base44.rpc("student_bundle", { p_id: studentId });
+  const bundle = await base44.rpc("student_bundle", { p_id: studentId });
+  // null = không có quyền xem (đã bật đăng nhập email học sinh và tài khoản không khớp)
+  if (!bundle) throw Object.assign(new Error("Không có quyền xem kết quả của học sinh này."), { status: 403 });
+  const { fitness, anthro, comments, sessions } = bundle;
 
   const sessionMap = {};
   sessions.forEach((s) => (sessionMap[s.id] = s));

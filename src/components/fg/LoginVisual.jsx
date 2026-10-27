@@ -7,7 +7,7 @@ const EMBLEM_URL =
   "https://media.base44.com/images/public/6aa2ecca7110e8b5faae6a4b/8474eed90_LOGOVANG10x.png";
 
 // Left visual panel for the login page — Navy background, sporty school illustration
-export default function LoginVisual({ onLoginClick, formOpen = false, children }) {
+export default function LoginVisual({ onLoginClick, formOpen = false, title, subtitle, children }) {
   const reduce = useReducedMotion();
   const ease = [0.22, 1, 0.36, 1];
 
@@ -76,7 +76,7 @@ export default function LoginVisual({ onLoginClick, formOpen = false, children }
       <div className="relative z-10 flex-1 flex flex-col justify-center items-center text-center gap-5 sm:gap-7 py-4 sm:py-6 lg:max-w-[60%] mx-auto">
         <motion.div {...fade(0.25, 25)} className="w-full">
           <h1 className="text-white font-extrabold leading-tight" style={{ fontSize: "clamp(1.5rem, 4.5vw, 3rem)" }}>
-            Theo dõi hành trình<br />phát triển thể chất của con
+            {title ?? <>Theo dõi hành trình<br />phát triển thể chất của con</>}
           </h1>
         </motion.div>
         <motion.p
@@ -84,7 +84,7 @@ export default function LoginVisual({ onLoginClick, formOpen = false, children }
           className="max-w-md text-sm sm:text-base leading-relaxed"
           style={{ color: "rgba(255,255,255,0.72)" }}
         >
-          Mỗi chỉ số hôm nay là một bước tiến trên hành trình khỏe mạnh và trưởng thành của học sinh Việt Anh.
+          {subtitle ?? "Mỗi chỉ số hôm nay là một bước tiến trên hành trình khỏe mạnh và trưởng thành của học sinh Việt Anh."}
         </motion.p>
 
         {/* Lion mascot illustration */}

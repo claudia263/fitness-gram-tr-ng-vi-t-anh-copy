@@ -25,7 +25,7 @@ export default function ParentDashboard() {
   const comments = data?.commentBySession || {};
 
   const latestFitness = fitnessRows.length ? fitnessRows[fitnessRows.length - 1] : null;
-  const latestAnthro = anthroRows.length ? enrichAnthro(anthroRows[anthroRows.length - 1], activeStudent?.birth_date) : null;
+  const latestAnthro = anthroRows.length ? enrichAnthro(anthroRows[anthroRows.length - 1], activeStudent?.birth_date, activeStudent?.sex) : null;
   const prevFitness = fitnessRows.length > 1 ? fitnessRows[fitnessRows.length - 2] : null;
 
   const latestSession = latestFitness?.session || latestAnthro?.session;

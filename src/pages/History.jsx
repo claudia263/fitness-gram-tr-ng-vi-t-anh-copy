@@ -14,7 +14,7 @@ export default function History() {
   const [schoolYear, setSchoolYear] = useState("all");
 
   const fitnessRows = data?.fitnessRows || [];
-  const anthroRows = (data?.anthroRows || []).map((a) => enrichAnthro(a, activeStudent?.birth_date));
+  const anthroRows = (data?.anthroRows || []).map((a) => enrichAnthro(a, activeStudent?.birth_date, activeStudent?.sex));
   const comments = data?.commentBySession || {};
 
   const schoolYears = useMemo(() => {

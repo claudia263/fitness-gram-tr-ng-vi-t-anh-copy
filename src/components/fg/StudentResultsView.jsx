@@ -13,6 +13,7 @@ import HealthAdvice from "@/components/fg/HealthAdvice";
 import NormsComparison from "@/components/fg/NormsComparison";
 import ExportResultsButton from "@/components/fg/ExportResultsButton";
 import { Calendar } from "lucide-react";
+import { sessionDateRange } from "@/lib/campus";
 
 // Hiển thị toàn bộ kết quả thể chất của một học sinh (fitness + growth + nhận xét + lịch sử)
 export default function StudentResultsView({ student, onNameClick }) {
@@ -29,8 +30,10 @@ export default function StudentResultsView({ student, onNameClick }) {
   fitnessRows.forEach((r) => { fitnessBySession[r.session_id] = r; });
 
   // All test sessions sorted by test_date descending (newest first)
+  // Chỉ đợt của cơ sở con đang học (hoặc đợt con đã có kết quả)
+  const anthroSessionIds = new Set(anthroRows.map((a) => a.session_id));
   const historySessions = [...allSessions]
-    .filter((s) => s.test_date)
+    .filter((s) => s.test_date && (fitnessBySession[s.id] || anthroSessionIds.has(s.id) || !s.campus || s.campus === student?.campus))
     .sort((a, b) => new Date(b.test_date) - new Date(a.test_date));
 
   const latestFitness = fitnessRows.length ? fitnessRows[fitnessRows.length - 1] : null;
@@ -57,7 +60,7 @@ export default function StudentResultsView({ student, onNameClick }) {
       {latestSession && (
         <div className="mb-6 flex items-center gap-2 text-sm text-muted-foreground">
           <Calendar className="w-4 h-4" />
-          <span>Kỳ kiểm tra gần nhất: <span className="font-semibold text-navy">{latestSession.name}</span> — {formatDate(latestSession.test_date)}</span>
+          <span>Kỳ kiểm tra gần nhất: <span className="font-semibold text-navy">{latestSession.name}</span> — {sessionDateRange(latestSession)}</span>
         </div>
       )}
 
@@ -140,7 +143,7 @@ export default function StudentResultsView({ student, onNameClick }) {
                 <div key={s.id} className="flex items-center justify-between py-2.5 border-b last:border-0" style={{ borderColor: "rgba(38,39,93,0.06)" }}>
                   <div>
                     <div className="text-sm font-semibold text-navy">{s.name || "Đợt kiểm tra"}</div>
-                    <div className="text-xs text-muted-foreground">{formatDate(s.test_date)}</div>
+                    <div className="text-xs text-muted-foreground">{sessionDateRange(s)}</div>
                   </div>
                   {r ? (
                     <div className="flex flex-wrap gap-x-4 gap-y-1 justify-end text-xs text-muted-foreground">
@@ -178,11 +181,4 @@ function SectionTitle({ title, subtitle }) {
       {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
     </div>
   );
-}
-
-function formatDate(d) {
-  if (!d) return "";
-  const date = new Date(d);
-  if (isNaN(date.getTime())) return d;
-  return date.toLocaleDateString("vi-VN", { day: "2-digit", month: "2-digit", year: "numeric" });
 }

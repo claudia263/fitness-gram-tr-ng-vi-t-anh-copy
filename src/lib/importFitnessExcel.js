@@ -12,13 +12,15 @@ export async function importFitnessExcel(file, opts = {}, entities) {
   const testDate = opts.test_date || '2026-06-01';
   const semester = opts.semester || 'Học kỳ II';
   const notes = opts.notes || 'Import tự động từ file Excel';
+  const roundNo = opts.round_no ?? null;
+  const endDate = opts.end_date || null;
 
   // 1. Đọc workbook
   const buf = await file.arrayBuffer();
   const wb = XLSX.read(buf, { cellDates: false });
 
-  // 2. Create (or reuse) one TestSession for this import
-  const existingSessions = await base44.entities.TestSession.filter({ name: sessionName });
+  // 2. Tạo (hoặc dùng lại) đợt kiểm tra của cơ sở này — tìm theo tên + cơ sở để 2 cơ sở cùng tên đợt không nhập lẫn
+  const existingSessions = await base44.entities.TestSession.filter({ name: sessionName, campus });
   let sessionId;
   if (existingSessions && existingSessions.length > 0) {
     sessionId = existingSessions[0].id;
@@ -26,6 +28,9 @@ export async function importFitnessExcel(file, opts = {}, entities) {
     const session = await base44.entities.TestSession.create({
       name: sessionName,
       test_date: testDate,
+      end_date: endDate,
+      round_no: roundNo,
+      campus,
       semester,
       school_year: schoolYear,
       notes,
@@ -35,9 +40,9 @@ export async function importFitnessExcel(file, opts = {}, entities) {
 
   // 3. Load existing classes + students (upsert — không bỏ qua học sinh đã tồn tại)
   const existingClasses = await base44.entities.Class.list(null, 5000);
-  const classMap = new Map(); // "sheetName|schoolYear" -> classId
+  const classMap = new Map(); // "sheetName|schoolYear|campus" -> classId (mỗi cơ sở có lớp riêng)
   for (const c of existingClasses) {
-    classMap.set(`${c.name}|${c.school_year}`, c.id);
+    classMap.set(`${c.name}|${c.school_year}|${c.campus || ''}`, c.id);
   }
   const existingStudents = await base44.entities.Student.list(null, 20000);
   const studentMap = new Map(); // normKey(name,classId) -> studentId
@@ -67,7 +72,7 @@ export async function importFitnessExcel(file, opts = {}, entities) {
     const col = (name) => header.findIndex((h) => String(h || '').includes(name));
 
     // "Tên" khớp cả "Tên học sinh" và "Họ Tên" (sheet 4OIC)
-    const iName = col('Tên');
+    const iName = col('Tên') >= 0 ? col('Tên') : header.findIndex((h) => /họ (và )?tên/i.test(String(h || '')));
     const iSex = col('Giới tính');
     const iBirth = col('Ngày sinh');
     const iHeight = col('Chiều Cao');
@@ -84,7 +89,7 @@ export async function importFitnessExcel(file, opts = {}, entities) {
     const grade = (cleanSheet.match(/^[0-9]+/) || ['0'])[0];
 
     // Ensure class exists
-    let classId = classMap.get(`${cleanSheet}|${schoolYear}`);
+    let classId = classMap.get(`${cleanSheet}|${schoolYear}|${campus}`);
     if (!classId) {
       const created = await base44.entities.Class.create({
         name: cleanSheet,
@@ -93,7 +98,7 @@ export async function importFitnessExcel(file, opts = {}, entities) {
         school_year: schoolYear,
       });
       classId = created.id;
-      classMap.set(`${cleanSheet}|${schoolYear}`, classId);
+      classMap.set(`${cleanSheet}|${schoolYear}|${campus}`, classId);
     }
 
     for (let r = 1; r < rows.length; r++) {
@@ -139,6 +144,7 @@ export async function importFitnessExcel(file, opts = {}, entities) {
       if (!hasFitness && height == null && weight == null) noDataCount++;
 
       rowRecords.push({
+        cols: { pacer: iPacer >= 0, sitReach: iSitReach >= 0, pushup: iPushup >= 0, plank: iPlank >= 0 },
         key,
         studentId,
         isNew,
@@ -190,12 +196,12 @@ export async function importFitnessExcel(file, opts = {}, entities) {
     if (!r.studentId) continue;
 
     if (r.hasFitness) {
+      // Chỉ ghi các bài có cột trong sheet — file chỉ có bài Bộ GD&ĐT không xoá điểm FitnessGram đã nhập
       const data = {
-        pacer_level: r.pacerLevel,
-        pacer_laps: r.pacerLaps,
-        sit_and_reach_cm: r.sitReach,
-        pushup_count: r.pushup,
-        plank_seconds: r.plank,
+        ...(r.cols.pacer ? { pacer_level: r.pacerLevel, pacer_laps: r.pacerLaps } : {}),
+        ...(r.cols.sitReach ? { sit_and_reach_cm: r.sitReach } : {}),
+        ...(r.cols.pushup ? { pushup_count: r.pushup } : {}),
+        ...(r.cols.plank ? { plank_seconds: r.plank } : {}),
         ...r.moet,
       };
       const existing = fitnessByStudent.get(r.studentId);
@@ -288,8 +294,9 @@ function num(v) {
 }
 
 // Chuẩn hóa key học sinh: tên (trim + collapse spaces) + classId để khớp trùng.
+// Không phân biệt hoa / thường ("ARIHANT TRINH JAIN" = "Arihant Trinh Jain") để không tạo trùng học sinh
 function normKey(name, classId) {
-  const n = String(name || '').trim().replace(/\s+/g, ' ');
+  const n = String(name || '').normalize('NFC').trim().replace(/\s+/g, ' ').toLocaleLowerCase('vi');
   return `${n}|${classId}`;
 }
 
