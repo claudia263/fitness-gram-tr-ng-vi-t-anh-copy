@@ -5,6 +5,7 @@ import { base44 } from "@/api/base44Client";
 import PageTransition from "@/components/fg/PageTransition";
 import AdminExplorer from "@/components/fg/AdminExplorer";
 import StudentEmailPanel from "@/components/fg/StudentEmailPanel";
+import ExportStudentsPanel from "@/components/fg/ExportStudentsPanel";
 import { track, useTrackView } from "@/lib/usage";
 import { campusLabel, campusesOf, sessionDateRange } from "@/lib/campus";
 import { Users, School, ClipboardList, Plus, Loader2, CheckCircle2, UploadCloud, AlertCircle, FileSpreadsheet, ClipboardCheck, Pencil } from "lucide-react";
@@ -101,6 +102,8 @@ export default function AdminDashboard() {
             </div>
 
             <StudentEmailPanel students={students} classes={classes} onSaved={loadAll} />
+
+            <ExportStudentsPanel students={students} classes={classes} sessions={sessions} campuses={campuses} />
 
             {/* Đợt kiểm tra: mỗi đợt chung của năm học, chia theo cơ sở */}
             <div className="fg-card p-5 sm:p-6 mb-6">

@@ -342,6 +342,8 @@ function parseBirthDate(v, grade) {
 //   = cumShuttles(level-1) + laps.
 function parsePacer(v) {
   if (v == null || v === '') return { level: null, laps: null };
+  // Ô PACER bị Excel hiểu nhầm thành ngày sẽ thành số serial (vd 46113): không phải số lượt thật
+  if (typeof v === 'number' && v > 400) return { level: null, laps: null };
   if (v instanceof Date) return { level: null, laps: null };
   const s = String(v).trim();
   if (/^\d{4}-\d{2}-\d{2}/.test(s)) return { level: null, laps: null };
@@ -356,7 +358,7 @@ function parsePacer(v) {
   }
   const n = typeof v === 'number' ? v : Number(s);
   if (!isNaN(n)) {
-    if (Number.isInteger(n)) return { level: null, laps: n }; // tổng lượt
+    if (Number.isInteger(n)) return n > 400 ? { level: null, laps: null } : { level: null, laps: n }; // tổng lượt
     // số thập phân → level.laps
     const lvl = Math.floor(n);
     const lapsInLevel = Math.round((n - lvl) * 10);
