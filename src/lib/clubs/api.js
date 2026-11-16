@@ -100,6 +100,61 @@ export async function removeMember(id) {
   if (error) fail(error);
 }
 
+/* ------------------------- điểm danh + app Lương ------------------------- */
+// Các buổi điểm danh của CLB trong một ngày (kèm từng hội viên có mặt / vắng)
+export async function fetchAttendance(clubId, date) {
+  const { data, error } = await supabase.from("club_attendance_sessions").select("*, club_attendance(member_id, present)").eq("club_id", clubId).eq("session_date", date);
+  if (error) fail(error);
+  return data.map((s) => ({ ...s, slot: hm(s.slot_start), marks: Object.fromEntries((s.club_attendance || []).map((a) => [a.member_id, a.present])) }));
+}
+
+// marks: { [memberId]: true | false } — phải đủ mọi hội viên
+export async function saveAttendance({ clubId, date, slot, marks }) {
+  const { data, error } = await supabase.rpc("save_attendance", {
+    p_club: clubId,
+    p_date: date,
+    p_slot: slot,
+    p_marks: Object.entries(marks).map(([member_id, present]) => ({ member_id, present })),
+  });
+  if (error) fail(error);
+  return data;
+}
+
+export async function fetchMemberCodes(clubId) {
+  const { data, error } = await supabase.rpc("club_member_codes", { p_club: clubId });
+  if (error) fail(error);
+  return Object.fromEntries((data || []).map((r) => [r.member_id, r.has_code]));
+}
+
+// Lô đã xếp gửi sang app Lương của một buổi (chỉ admin / Tổ trưởng / nhân sự đọc được)
+export async function fetchOutboxBySession(sessionId) {
+  const { data, error } = await supabase.from("luong_outbox").select("id, status, attempts, record_count, skipped_no_code, last_status, last_error, response, sent_at").eq("session_id", sessionId).order("created_date", { ascending: false });
+  if (error) fail(error);
+  return data;
+}
+
+export async function fetchLuongStatus() {
+  const { data, error } = await supabase.rpc("luong_trang_thai");
+  if (error) fail(error);
+  return data;
+}
+
+export async function setLuongEnabled(enabled) {
+  const { data, error } = await supabase.rpc("luong_cau_hinh", { p_enabled: enabled });
+  if (error) fail(error);
+  return data;
+}
+
+export async function retryOutbox(id) {
+  const { error } = await supabase.rpc("luong_thu_lai", { p_id: id });
+  if (error) fail(error);
+}
+
+export async function saveLuongGroup(clubId, group) {
+  const { error } = await supabase.from("clubs").update({ luong_group: group.trim() || null }).eq("id", clubId);
+  if (error) fail(error);
+}
+
 export async function saveClub(id, fields, slots) {
   let clubId = id;
   if (id) {
@@ -146,6 +201,33 @@ export async function uploadEvidence({ clubId, blob, code, deviceTime, pos }) {
   return data;
 }
 
+// Gỡ một ảnh (chụp sai ngày, nhầm CLB...). Máy chủ ghi lại ai gỡ, lúc nào, vì sao.
+export async function removeEvidencePhoto(photoId, reason) {
+  const { data, error } = await supabase.rpc("remove_evidence_photo", { p_photo: photoId, p_reason: reason });
+  if (error) fail(error);
+  return data;
+}
+
+// Bổ sung ảnh cho một ngày đã qua (date: Date hoặc "YYYY-MM-DD"). Ảnh được gắn nhãn "bổ sung" kèm lý do.
+export async function uploadEvidenceLate({ clubId, date, reason, blob, code, deviceTime }) {
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth?.user) throw new Error("Phiên đăng nhập đã hết, vui lòng đăng nhập lại.");
+  const day = typeof date === "string" ? date : ymd(date);
+  const path = `${auth.user.id}/${clubId}/${day}/${code}.jpg`;
+  const { error: upError } = await supabase.storage.from(BUCKET).upload(path, blob, { contentType: "image/jpeg", upsert: false });
+  if (upError) fail(upError);
+  const { data, error } = await supabase.rpc("submit_evidence_late", {
+    p_club: clubId,
+    p_date: day,
+    p_reason: reason,
+    p_path: path,
+    p_code: code,
+    p_device_time: deviceTime.toISOString(),
+  });
+  if (error) fail(error);
+  return data;
+}
+
 export async function reviewSession(id, status, reason = null) {
   const { data: auth } = await supabase.auth.getUser();
   const patch =
@@ -180,6 +262,31 @@ export function useEvidence(range) {
 
 export function useMembers(clubId) {
   return useQuery({ queryKey: ["members", clubId], queryFn: () => fetchMembers(clubId), enabled: !!clubId });
+}
+
+export function useAttendance(clubId, date) {
+  return useQuery({ queryKey: ["attendance", clubId, date], queryFn: () => fetchAttendance(clubId, date), enabled: !!clubId && !!date });
+}
+
+// Đã chạy migration 0010 (bảng điểm danh) chưa; chưa thì ẩn tab Điểm danh thay vì để báo lỗi
+export function useAttendanceReady() {
+  return useQuery({
+    queryKey: ["attendance-ready"],
+    staleTime: 10 * 60 * 1000,
+    retry: false,
+    queryFn: async () => {
+      const { error } = await supabase.from("club_attendance_sessions").select("id").limit(1);
+      return !error;
+    },
+  });
+}
+
+export function useMemberCodes(clubId) {
+  return useQuery({ queryKey: ["member-codes", clubId], queryFn: () => fetchMemberCodes(clubId), enabled: !!clubId });
+}
+
+export function useLuongStatus(enabled) {
+  return useQuery({ queryKey: ["luong-status"], queryFn: fetchLuongStatus, enabled, refetchInterval: 30000 });
 }
 
 export function useInvalidateClubs() {

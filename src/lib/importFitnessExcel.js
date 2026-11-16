@@ -61,6 +61,7 @@ export async function importFitnessExcel(file, opts = {}, entities) {
   const studentsToCreate = []; // {full_name, sex, birth_date, class_id, grade, campus, school_year, _key}
   const rowRecords = []; // parsed rows awaiting student_id resolution
   let existingStudentCount = 0;
+  const moetWarnings = [];
   let noDataCount = 0;
 
   for (const sheetName of wb.SheetNames) {
@@ -82,11 +83,18 @@ export async function importFitnessExcel(file, opts = {}, entities) {
     const iPushup = col('Push-up');
     const iPlank = col('Plank');
     // Bài test Bộ GD&ĐT (QĐ 53): chỉ ghi các cột có trong sheet
-    const moetCols = MOET_COLUMNS.map((m) => ({ ...m, i: header.findIndex((h) => m.match.test(plain(h))) })).filter((m) => m.i >= 0);
     if (iName < 0) continue;
 
     const cleanSheet = String(sheetName).trim();
     const grade = (cleanSheet.match(/^[0-9]+/) || ['0'])[0];
+    // Lớp 1–5 đo con thoi 4×10m nhưng bảng tính ghi nhầm tên cột "Chạy 30m": ghi vào con thoi
+    const moetCols = MOET_COLUMNS.map((m) => ({ ...m, i: header.findIndex((h) => m.match.test(plain(h))) }))
+      .filter((m) => m.i >= 0)
+      .map((m) => (m.field === 'sprint_30m_s' && Number(grade) >= 1 && Number(grade) <= 5 ? { ...m, field: 'shuttle_4x10_s' } : m));
+    // Nếu sheet đã có cột con thoi riêng thì không chuyển nhầm (tránh ghi đè)
+    if (new Set(moetCols.map((m) => m.field)).size !== moetCols.length) {
+      moetCols.forEach((m) => { if (m.field === 'shuttle_4x10_s' && /chay 30/.test(plain(header[m.i]))) m.field = 'sprint_30m_s'; });
+    }
 
     // Ensure class exists
     let classId = classMap.get(`${cleanSheet}|${schoolYear}|${campus}`);
@@ -134,7 +142,16 @@ export async function importFitnessExcel(file, opts = {}, entities) {
       const pushup = num(row[iPushup]);
       const plank = num(row[iPlank]);
       const pacer = parsePacer(row[iPacer]);
-      const moet = Object.fromEntries(moetCols.map((m) => [m.field, num(String(row[m.i] ?? '').replace(',', '.').trim())]));
+      const moet = Object.fromEntries(moetCols.map((m) => {
+        const raw = row[m.i];
+        const v = parseMoetValue(raw);
+        const [lo, hi] = MOET_RANGE[m.field] || [0, Infinity];
+        if (v != null && (v < lo || v > hi)) {
+          moetWarnings.push(`${cleanSheet} - ${name}: ${m.field} = "${raw}" ngoài khoảng ${lo}–${hi}, bỏ qua`);
+          return [m.field, null];
+        }
+        return [m.field, v];
+      }));
 
       // PACER: tổng lượt (shuttles) → level tự tính từ bảng 15m PACER
       const pacerLaps = pacer.laps;
@@ -259,6 +276,7 @@ export async function importFitnessExcel(file, opts = {}, entities) {
     fitness: fitnessCreated + fitnessUpdated,
     anthropometric: anthroCreated + anthroUpdated,
     skipped: noDataCount,
+    warnings: moetWarnings,
     students_new: totalStudents,
     students_existing: existingStudentCount,
     fitness_new: fitnessCreated,
@@ -276,8 +294,24 @@ const MOET_COLUMNS = [
   { field: 'situps_30s', match: /gap bung|nam ngua/ },
   { field: 'sprint_30m_s', match: /chay 30 ?m|^30 ?m/ },
   { field: 'grip_strength_kg', match: /bop tay/ },
-  { field: 'shuttle_4x10_s', match: /con thoi|4 ?x ?10/ },
+  { field: 'shuttle_4x10_s', match: /con thoi|4 ?m? ?x ?10/ },
 ];
+// Khoảng hợp lệ (khớp ràng buộc CSDL); ngoài khoảng → bỏ trống và báo cảnh báo
+const MOET_RANGE = {
+  long_jump_cm: [30, 400],
+  run_5min_m: [100, 2500],
+  situps_30s: [0, 80],
+  sprint_30m_s: [2, 30],
+  grip_strength_kg: [1, 100],
+  shuttle_4x10_s: [5, 60],
+};
+// "6,77" / "840m" / "94cm" / "11.46)" → số; chữ như "Nghỉ" → null
+function parseMoetValue(v) {
+  if (v == null || v === '') return null;
+  if (typeof v === 'number') return isNaN(v) ? null : v;
+  const s = String(v).trim().replace(',', '.').replace(/\s*(cm|m|s|kg)?\)?\s*$/i, '');
+  return /^\d+(\.\d+)?$/.test(s) ? Number(s) : null;
+}
 const plain = (h) =>
   String(h || '')
     .normalize('NFD')

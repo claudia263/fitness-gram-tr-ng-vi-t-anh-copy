@@ -126,9 +126,9 @@ export default function HealthAdvice({ anthro, fitness, sex }) {
 function MacroStat({ label, value, unit, sub, color }) {
   return (
     <div className="flex flex-col items-center">
-      <div className="text-base font-extrabold tabular-nums" style={{ color }}>{value}<span className="text-[10px] font-semibold ml-0.5">{unit}</span></div>
-      <div className="text-[10px] text-muted-foreground leading-tight">{label}</div>
-      {sub && <div className="text-[9px] text-muted-foreground/70">{sub}</div>}
+      <div className="text-base font-extrabold tabular-nums" style={{ color }}>{value}<span className="text-xs font-semibold ml-0.5">{unit}</span></div>
+      <div className="text-xs text-muted-foreground leading-tight">{label}</div>
+      {sub && <div className="text-xs text-muted-foreground/70">{sub}</div>}
     </div>
   );
 }

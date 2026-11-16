@@ -16,13 +16,13 @@ export default function WeeklyTimetable({ clubs, staffById, now, onOpen }) {
     <div className="fg-card overflow-x-auto p-2 sm:p-3">
       <table className="w-full min-w-[960px] border-separate border-spacing-1 text-sm">
         <thead>
-          <tr className="text-[11px] uppercase tracking-wide text-muted-foreground">
+          <tr className="text-xs uppercase tracking-wide text-muted-foreground">
             <th className="w-28 px-2 py-2 text-left font-semibold">Địa điểm</th>
             <th className="w-28 px-2 py-2 text-left font-semibold">Khung giờ</th>
             {cols.map((d) => (
               <th key={d} className={`px-2 py-2 text-left font-semibold ${d === todayDow ? "text-navy" : ""}`}>
                 {DOW_FULL[d]}
-                {d === todayDow && <span className="ml-1 rounded-md bg-yellow px-1 py-0.5 text-[10px] text-navy">Hôm nay</span>}
+                {d === todayDow && <span className="ml-1 rounded-md bg-yellow px-1 py-0.5 text-xs text-navy">Hôm nay</span>}
               </th>
             ))}
           </tr>
@@ -57,12 +57,12 @@ export default function WeeklyTimetable({ clubs, staffById, now, onOpen }) {
                             <span className="text-[13px] font-semibold leading-tight">{c.name}</span>
                             <span className="text-xs opacity-80">{teacherOf(c, staffById)}</span>
                             {live && (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-semibold">
+                              <span className="inline-flex items-center gap-1 text-xs font-semibold">
                                 <span className="h-1.5 w-1.5 animate-pulse rounded-full bg-rose-500" /> Đang diễn ra
                               </span>
                             )}
                             {c.source === "manual" && (
-                              <span className="rounded-md bg-navy px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">
+                              <span className="rounded-md bg-navy px-1.5 py-0.5 text-xs font-bold uppercase text-white">
                                 {upcoming ? `Mới · từ ${fmtShortDate(parseYmd(c.starts_on))}` : "Phát sinh"}
                               </span>
                             )}

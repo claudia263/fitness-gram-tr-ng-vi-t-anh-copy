@@ -45,7 +45,7 @@ function TableNav({ current, onPick }) {
       <nav aria-label="Các bảng dữ liệu" className="fg-card hidden p-3 lg:block">
         {GROUPS.map((g) => (
           <div key={g.key} className="mb-3 last:mb-0">
-            <p className="px-2 pb-1 text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{g.label}</p>
+            <p className="px-2 pb-1 text-xs font-bold uppercase tracking-widest text-muted-foreground">{g.label}</p>
             {TABLES.filter((t) => t.group === g.key).map((t) => (
               <button
                 key={t.key}
@@ -246,7 +246,7 @@ export default function AdminData() {
                       </tr>
                     )}
                     {rows.map((r) => (
-                      <tr key={String(r[pkOf(table)])} onClick={() => setEditing(r)} className="cursor-pointer border-t border-[rgba(38,39,93,0.06)] hover:bg-navy-soft">
+                      <tr key={String(r[pkOf(table)])} onClick={() => setEditing(r)} onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); setEditing(r); } }} tabIndex={0} role="button" className="cursor-pointer focus-visible:bg-navy-soft border-t border-[rgba(38,39,93,0.06)] hover:bg-navy-soft">
                         {listCols.map((c, i) => {
                           const text = display(c, r[c.key], refs);
                           return (

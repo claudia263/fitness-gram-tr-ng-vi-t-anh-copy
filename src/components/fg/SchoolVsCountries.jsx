@@ -50,8 +50,8 @@ export default function SchoolVsCountries({ pacer }) {
       <div className="relative h-36 mt-4 min-w-[620px]">
         {/* Trục P0–P100 */}
         <div className="absolute left-0 right-0 top-1/2 h-px" style={{ background: "#D1D5DB" }} />
-        <span className="absolute left-0 text-[10px] font-semibold text-muted-foreground" style={{ top: "calc(50% + 10px)" }}>P0</span>
-        <span className="absolute right-0 text-[10px] font-semibold text-muted-foreground" style={{ top: "calc(50% + 10px)" }}>P100</span>
+        <span className="absolute left-0 text-xs font-semibold text-muted-foreground" style={{ top: "calc(50% + 10px)" }}>P0</span>
+        <span className="absolute right-0 text-xs font-semibold text-muted-foreground" style={{ top: "calc(50% + 10px)" }}>P100</span>
 
         {/* Mốc của trường */}
         <div className="absolute inset-y-0 z-10 -translate-x-1/2" style={{ left: `${school}%` }}>
@@ -61,7 +61,7 @@ export default function SchoolVsCountries({ pacer }) {
             style={{ top: "50%", background: "#26275D", border: "2px solid #FFFFFF" }}
           />
           <span
-            className="absolute left-1/2 -translate-x-1/2 top-0 z-30 whitespace-nowrap rounded-full px-2.5 py-1 text-[11px] font-bold"
+            className="absolute left-1/2 -translate-x-1/2 top-0 z-30 whitespace-nowrap rounded-full px-2.5 py-1 text-xs font-bold"
             style={{ background: "#F9DD0E", color: "#26275D" }}
           >
             Trường mình P{school}
@@ -74,7 +74,7 @@ export default function SchoolVsCountries({ pacer }) {
           return (
             <div key={c.name} className="absolute z-20" style={{ left: `${c.p}%`, top: "50%" }}>
               <span className="absolute left-1/2 -translate-x-1/2 -translate-y-1/2 w-1.5 h-1.5 rounded-full" style={{ background: "#9CA3AF" }} />
-              <span className={`absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-[11px] leading-none text-muted-foreground ${above ? "bottom-2" : "top-2"}`}>
+              <span className={`absolute left-1/2 -translate-x-1/2 whitespace-nowrap text-xs leading-none text-muted-foreground ${above ? "bottom-2" : "top-2"}`}>
                 {c.name}
               </span>
             </div>
@@ -84,7 +84,7 @@ export default function SchoolVsCountries({ pacer }) {
       </div>
 
       <div className="mt-3 pt-3 border-t" style={{ borderColor: "rgba(38,39,93,0.08)" }}>
-        <p className="text-[11px] text-muted-foreground leading-relaxed">
+        <p className="text-xs text-muted-foreground leading-relaxed">
           Nguồn: Lang và cs. (2018), Br J Sports Med – so sánh 50 quốc gia, dữ liệu 1981–2014. Việt Nam không có trong nghiên cứu.
           Kết quả trường dựa trên {n} học sinh 9–17 tuổi; mẫu nhỏ nên chỉ mang tính tham khảo.
         </p>

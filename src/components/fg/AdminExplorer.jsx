@@ -293,7 +293,7 @@ function StudentResults({ studentId }) {
 function Metric({ label, value }) {
   return (
     <div className="rounded-xl px-3 py-2 bg-white">
-      <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">{label}</div>
+      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{label}</div>
       <div className="text-sm font-extrabold text-navy tabular-nums">{value != null ? value : "--"}</div>
     </div>
   );
@@ -436,7 +436,7 @@ function StudentResultForm({ student, sessions, onDone }) {
           <NumInput label="Lượt" value={form.pacer_laps} onChange={(v) => setForm({ ...form, pacer_laps: v, pacer_level: String(pacerLevelFromLaps(v)) })} />
           <NumInput label="Level" value={form.pacer_level} onChange={(v) => setForm({ ...form, pacer_level: v, pacer_laps: String(pacerLapsFromLevel(v)) })} />
           {form.pacer_level && (() => { const info = getPacerLevelInfo(Math.floor(Number(form.pacer_level))); return info ? (
-            <div className="col-span-2 text-[11px] text-muted-foreground leading-snug">Level {info.level}: {info.shuttles} bật · {info.speed} km/h · {info.cumDist} m tích lũy</div>
+            <div className="col-span-2 text-xs text-muted-foreground leading-snug">Level {info.level}: {info.shuttles} bật · {info.speed} km/h · {info.cumDist} m tích lũy</div>
           ) : null; })()}
           <NumInput label="Sit & Reach (cm)" value={form.sit_and_reach_cm} onChange={(v) => setForm({ ...form, sit_and_reach_cm: v })} />
           <NumInput label="Push-up (lần)" value={form.pushup_count} onChange={(v) => setForm({ ...form, pushup_count: v })} />

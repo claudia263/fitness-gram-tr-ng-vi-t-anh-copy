@@ -46,7 +46,7 @@ export default function StaffLoginForm() {
 
   // Vừa quay lại từ Google: cán bộ vào thẳng trang làm việc
   useEffect(() => {
-    if (isStaff && sessionStorage.getItem(GOOGLE_FLAG)) enterManagement(user.role, "google");
+    if (isStaff) enterManagement(user.role, sessionStorage.getItem(GOOGLE_FLAG) ? "google" : null);
   }, [isStaff, user?.role]);
 
   const handleSubmit = async (e) => {
@@ -218,13 +218,36 @@ export default function StaffLoginForm() {
   }
 
   return (
-    <div className="w-full max-w-sm mx-auto">
-      <form onSubmit={handleSubmit} className="fg-card p-5 sm:p-6 space-y-4">
+    <div className="w-full">
+      <form onSubmit={handleSubmit} className="fg-card p-6 sm:p-8 space-y-5" style={{ boxShadow: "0 24px 60px rgba(10,11,40,0.35)" }}>
         <div>
-          <label className="text-xs font-semibold text-muted-foreground uppercase mb-1.5 block">Email</label>
+          <h2 className="text-xl font-extrabold text-navy">Đăng nhập cán bộ</h2>
+          <p className="text-sm text-muted-foreground mt-1">Giáo viên dùng email Google @{SCHOOL_DOMAIN} của trường để vào thẳng trang CLB.</p>
+        </div>
+
+        {googleEnabled && (
+          <>
+            <button
+              type="button"
+              onClick={handleGoogle}
+              className="fg-btn-primary w-full h-12 inline-flex items-center justify-center gap-2.5 text-base"
+            >
+              <GoogleIcon className="w-5 h-5" /> Đăng nhập bằng Google
+            </button>
+            <div className="flex items-center gap-3 text-xs text-muted-foreground" aria-hidden="true">
+              <span className="h-px flex-1 bg-[rgba(38,39,93,0.12)]" />
+              hoặc dùng email và mật khẩu
+              <span className="h-px flex-1 bg-[rgba(38,39,93,0.12)]" />
+            </div>
+          </>
+        )}
+
+        <div>
+          <label htmlFor="staff-email" className="fg-eyebrow mb-1.5 block">Email</label>
           <div className="relative">
             <Mail className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
+              id="staff-email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
@@ -237,10 +260,11 @@ export default function StaffLoginForm() {
         </div>
 
         <div>
-          <label className="text-xs font-semibold text-muted-foreground uppercase mb-1.5 block">Mật khẩu</label>
+          <label htmlFor="staff-password" className="fg-eyebrow mb-1.5 block">Mật khẩu</label>
           <div className="relative">
             <Lock className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
+              id="staff-password"
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
@@ -262,27 +286,16 @@ export default function StaffLoginForm() {
         <button
           type="submit"
           disabled={busy}
-          className="fg-btn-primary w-full h-11 inline-flex items-center justify-center gap-2 text-sm"
+          className={`${googleEnabled ? "fg-btn-secondary" : "fg-btn-primary"} w-full h-11 inline-flex items-center justify-center gap-2 text-sm disabled:opacity-70`}
         >
           {busy ? (
-            <span className="w-4 h-4 border-2 border-navy/30 border-t-navy rounded-full animate-spin" />
+            <span className={`w-4 h-4 border-2 rounded-full animate-spin ${googleEnabled ? "border-white/30 border-t-white" : "border-navy/30 border-t-navy"}`} />
           ) : (
             <>
-              <LogIn className="w-4 h-4" /> Đăng nhập
+              <LogIn className="w-4 h-4" aria-hidden="true" /> Đăng nhập bằng mật khẩu
             </>
           )}
         </button>
-
-        {googleEnabled && (
-          <button
-            type="button"
-            onClick={handleGoogle}
-            className="w-full h-11 inline-flex items-center justify-center gap-2 rounded-[14px] bg-white text-sm font-semibold"
-            style={{ border: "1px solid rgba(38,39,93,0.15)", color: "#26275D" }}
-          >
-            <GoogleIcon className="w-4 h-4" /> Đăng nhập bằng Google @{SCHOOL_DOMAIN}
-          </button>
-        )}
 
         <div className="text-center">
           <Link to="/forgot-password" className="text-xs font-semibold text-muted-foreground hover:text-navy">

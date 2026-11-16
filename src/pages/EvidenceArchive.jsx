@@ -4,7 +4,7 @@ import { Archive, BadgeCheck, CalendarDays, CircleX, Images, LayoutGrid, Loader2
 import PageTransition from "@/components/fg/PageTransition";
 import { findPhotoByCode, useClubData, useEvidence, useSignedUrls } from "@/lib/clubs/api";
 import { checkClock, checkGeo, cleanCode, formatCode } from "@/lib/clubs/evidence";
-import { DOW_WORD, SPORTS, SPORT_ORDER, checkTime, fmtDate, fmtHm, fmtShortDate, norm, parseYmd, teacherOf, ymd } from "@/lib/clubs/model";
+import { DOW_WORD, SPORTS, SPORT_ORDER, checkPhotoTime, fmtDate, fmtHm, fmtShortDate, norm, parseYmd, teacherOf, ymd } from "@/lib/clubs/model";
 import { PageHeader, chipCls } from "@/components/clubs/ClubUi";
 import PhotoViewer, { EvidenceThumb } from "@/components/clubs/PhotoViewer";
 import { track, useTrackView } from "@/lib/usage";
@@ -98,7 +98,7 @@ export default function EvidenceArchive() {
           const club = clubById[s.club_id];
           if (!club) return [];
           return s.photos.map((p) => {
-            const flags = [checkTime(club, p.taken_at), checkGeo(p), checkClock(p)];
+            const flags = [checkPhotoTime(club, p), checkGeo(p), checkClock(p)];
             return { photo: p, club, status: s.status, date: s.session_date, teacher: teacherOf(club, staffById), flagged: flags.some((f) => !f.ok) };
           });
         })

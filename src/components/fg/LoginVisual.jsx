@@ -18,8 +18,8 @@ export default function LoginVisual({ onLoginClick, formOpen = false, title, sub
 
   return (
     <div
-      className="absolute inset-0 overflow-y-auto flex flex-col justify-between p-6 sm:p-10 lg:p-14"
-      style={{ background: "#26275D" }}
+      className="fg-on-navy absolute inset-0 overflow-y-auto flex flex-col gap-6 p-6 sm:p-10 lg:px-16 lg:py-10"
+      style={{ background: "radial-gradient(120% 90% at 15% 0%, #33357F 0%, #26275D 55%, #1F2050 100%)" }}
     >
       {/* Decorative background graphics */}
       <svg className="absolute inset-0 w-full h-full" viewBox="0 0 600 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -61,28 +61,30 @@ export default function LoginVisual({ onLoginClick, formOpen = false, title, sub
       )}
 
       {/* Top: logo */}
-      <motion.div {...fade(0.1, -15)} className="relative z-10 flex justify-center">
+      <motion.div {...fade(0.1, -15)} className="relative z-10 flex justify-center lg:justify-start w-full max-w-[1200px] mx-auto">
         <div className="flex items-center gap-3">
-          <div className="shrink-0" style={{ width: 64, height: 64 }}>
+          <div className="shrink-0" style={{ width: 56, height: 56 }}>
             <Image src={EMBLEM_URL} alt="Logo Trường Việt Anh" className="w-full h-full" fittingType="fit" />
           </div>
           <div className="leading-tight">
-            <div className="font-extrabold text-white text-xl tracking-tight">FITNESS GRAM</div>
+            <div className="font-extrabold text-white text-lg tracking-tight">FITNESS GRAM</div>
+            <div className="text-xs font-semibold tracking-[0.14em] uppercase" style={{ color: "rgba(255,255,255,0.55)" }}>Trường Việt Anh</div>
           </div>
         </div>
       </motion.div>
 
-      {/* Middle: headline + illustration */}
-      <div className="relative z-10 flex-1 flex flex-col justify-center items-center text-center gap-5 sm:gap-7 py-4 sm:py-6 lg:max-w-[60%] mx-auto">
+      {/* Hai cột trên máy tính: lời chào + linh vật bên trái, thẻ đăng nhập bên phải. Điện thoại: xếp dọc. */}
+      <div className="relative z-10 flex-1 w-full max-w-[1200px] mx-auto grid lg:grid-cols-2 gap-8 lg:gap-16 items-center content-center">
+       <div className="flex flex-col items-center lg:items-start text-center lg:text-left gap-4 sm:gap-6">
         <motion.div {...fade(0.25, 25)} className="w-full">
-          <h1 className="text-white font-extrabold leading-tight" style={{ fontSize: "clamp(1.5rem, 4.5vw, 3rem)" }}>
-            {title ?? <>Theo dõi hành trình<br />phát triển thể chất của con</>}
+          <h1 className="text-white font-extrabold leading-[1.15]" style={{ fontSize: "clamp(1.625rem, 3.2vw, 2.75rem)" }}>
+            {title ?? "Theo dõi hành trình phát triển thể chất của con"}
           </h1>
         </motion.div>
         <motion.p
           {...fade(0.4, 20)}
-          className="max-w-md text-sm sm:text-base leading-relaxed"
-          style={{ color: "rgba(255,255,255,0.72)" }}
+          className="max-w-md text-[15px] sm:text-base leading-relaxed"
+          style={{ color: "rgba(255,255,255,0.78)" }}
         >
           {subtitle ?? "Mỗi chỉ số hôm nay là một bước tiến trên hành trình khỏe mạnh và trưởng thành của học sinh Việt Anh."}
         </motion.p>
@@ -92,7 +94,7 @@ export default function LoginVisual({ onLoginClick, formOpen = false, title, sub
           initial={reduce ? { opacity: 0 } : { opacity: 0, x: -50, scale: 0.96 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={reduce ? { duration: 0.2 } : { duration: 0.9, ease, delay: 0.5 }}
-          className="relative flex items-center justify-center w-full"
+          className="relative hidden sm:flex items-center justify-center lg:justify-start w-full"
         >
           {/* Yellow motion trail behind mascot */}
           <motion.svg
@@ -111,7 +113,7 @@ export default function LoginVisual({ onLoginClick, formOpen = false, title, sub
           {/* Mascot sprite animation */}
           <MascotSprite
             float={!reduce}
-            className={`relative z-10 w-[80%] sm:w-[70%] lg:w-[68%] ${formOpen ? "max-w-[200px] sm:max-w-[240px] lg:max-w-[280px]" : "max-w-[360px] sm:max-w-[460px] lg:max-w-[560px]"}`}
+            className={`relative z-10 w-[80%] sm:w-[70%] lg:w-[68%] ${formOpen ? "max-w-[200px] sm:max-w-[240px] lg:max-w-[340px]" : "max-w-[360px] sm:max-w-[460px] lg:max-w-[560px]"}`}
           />
         </motion.div>
 
@@ -125,12 +127,13 @@ export default function LoginVisual({ onLoginClick, formOpen = false, title, sub
             Đăng nhập <ArrowRight className="w-5 h-5" />
           </motion.button>
         )}
+       </div>
 
-        {children}
+       {children && <div className="w-full flex justify-center lg:justify-end">{children}</div>}
       </div>
 
       {/* Bottom badge */}
-      <motion.div {...fade(0.6, 20)} className="relative z-10 flex items-center justify-center gap-3">
+      <motion.div {...fade(0.6, 20)} className="relative z-10 flex items-center justify-center lg:justify-start gap-3 w-full max-w-[1200px] mx-auto">
         <div className="h-1 w-10 rounded-full" style={{ background: "#F9DD0E" }} />
         <span className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.7)" }}>
           Hành trình khỏe mạnh – Tương lai vững vàng

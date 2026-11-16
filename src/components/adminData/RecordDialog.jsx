@@ -128,7 +128,7 @@ export default function RecordDialog({ table, row, refs, onClose, onSave, onDele
       <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto rounded-[22px] bg-white p-0 gap-0">
         <form onSubmit={submit} noValidate>
           <DialogHeader className="border-b px-5 py-4 text-left">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{table.label}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{table.label}</p>
             <DialogTitle className="text-xl font-extrabold text-navy">{isNew ? "Thêm mới" : editable ? "Sửa bản ghi" : "Chi tiết bản ghi"}</DialogTitle>
             <DialogDescription>{editable ? "Các ô có dấu * là bắt buộc." : "Bảng này chỉ xem, không sửa được trong app."}</DialogDescription>
           </DialogHeader>

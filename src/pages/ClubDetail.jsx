@@ -1,24 +1,27 @@
 import { useMemo, useRef, useState } from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
-import { Archive, CalendarDays, Camera, ChevronLeft, Clock, Info, MapPin, Pencil, Trash2, UserRound, Users } from "lucide-react";
+import { Archive, CalendarDays, Camera, ChevronLeft, ClipboardCheck, Clock, ImagePlus, Info, MapPin, Pencil, Trash2, UserRound, Users } from "lucide-react";
 import PageTransition from "@/components/fg/PageTransition";
 import EmptyState from "@/components/fg/EmptyState";
 import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/lib/AuthContext";
-import { deleteClub, saveClub, useClubData, useEvidence, useInvalidateClubs, useMembers, useSignedUrls } from "@/lib/clubs/api";
+import { deleteClub, removeEvidencePhoto, saveClub, useAttendanceReady, useClubData, useEvidence, useInvalidateClubs, useMembers, useSignedUrls } from "@/lib/clubs/api";
 import {
   CLUB_MANAGERS, canDeleteClub, canEditClub, DOW_FULL, DOW_SHORT, SPORTS, WEEK_ORDER, durationText, fmtDate, fmtShortDate, hasStarted, levelLabel, nextSession, parseYmd, slotFor, teacherOf, toMin, toneOf, ymd,
 } from "@/lib/clubs/model";
 import { StatusPill, SportIcon } from "@/components/clubs/ClubUi";
 import ClubFormDialog from "@/components/clubs/ClubFormDialog";
 import EvidenceCamera from "@/components/clubs/EvidenceCamera";
+import EvidenceBackfill from "@/components/clubs/EvidenceBackfill";
 import ClubMembers from "@/components/clubs/ClubMembers";
+import ClubAttendance from "@/components/clubs/ClubAttendance";
 import PhotoViewer, { EvidenceThumb, isFlagged } from "@/components/clubs/PhotoViewer";
 import { useTrackView } from "@/lib/usage";
 
 const TABS = [
   { key: "schedule", label: "Lịch sinh hoạt", icon: CalendarDays },
   { key: "students", label: "Học viên", icon: Users },
+  { key: "attendance", label: "Điểm danh", icon: ClipboardCheck },
   { key: "evidence", label: "Minh chứng hoạt động", icon: Camera },
 ];
 
@@ -40,7 +43,7 @@ function MonthCalendar({ club, sessions, now }) {
   };
   return (
     <div>
-      <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase text-muted-foreground">
+      <div className="grid grid-cols-7 gap-1 text-center text-xs font-semibold uppercase text-muted-foreground">
         {WEEK_ORDER.map((d) => (
           <div key={d} className="py-1">
             {DOW_SHORT[d]}
@@ -104,13 +107,13 @@ function ScheduleTab({ club, sessions, now }) {
               <div key={d} className={`flex min-w-0 flex-col items-center gap-1.5 rounded-xl px-0.5 py-2 ${d === now.getDay() ? "ring-2 ring-yellow" : ""} ${slot ? tone.soft : ""}`} style={slot ? undefined : { background: "#F7F8FC" }}>
                 <span className={`text-xs font-bold uppercase ${slot ? tone.text : "text-muted-foreground"}`}>{DOW_SHORT[d]}</span>
                 {slot ? (
-                  <span className="flex flex-col items-center font-mono text-[11px] font-semibold leading-tight tabular-nums text-navy">
+                  <span className="flex flex-col items-center font-mono text-xs font-semibold leading-tight tabular-nums text-navy">
                     <span>{slot.start}</span>
                     <span className="text-muted-foreground">↓</span>
                     <span>{slot.end}</span>
                   </span>
                 ) : (
-                  <span className="text-[11px] text-muted-foreground">Nghỉ</span>
+                  <span className="text-xs text-muted-foreground">Nghỉ</span>
                 )}
               </div>
             );
@@ -135,7 +138,7 @@ function ScheduleTab({ club, sessions, now }) {
       </div>
       <div className="flex min-w-0 flex-col gap-5">
         <section className="rounded-[22px] p-5 text-white" style={{ background: "linear-gradient(135deg, #26275D 0%, #3A3B7A 100%)" }}>
-          <p className="text-[11px] font-bold uppercase tracking-widest text-white/60">{next?.live ? "Đang sinh hoạt" : "Buổi tiếp theo"}</p>
+          <p className="text-xs font-bold uppercase tracking-widest text-white/60">{next?.live ? "Đang sinh hoạt" : "Buổi tiếp theo"}</p>
           {next ? (
             <>
               <p className="mt-1 text-2xl font-extrabold">
@@ -164,14 +167,36 @@ function ScheduleTab({ club, sessions, now }) {
   );
 }
 
-function EvidenceTab({ club, sessions, canCapture, isAdmin, staffById, location, onSaved }) {
+// Các ngày CLB có lịch trong 30 ngày qua nhưng chưa có buổi minh chứng nào (không tính hôm nay)
+function missingDays(club, sessions, now) {
+  const have = new Set(sessions.map((s) => s.session_date));
+  const out = [];
+  for (let i = 1; i <= 30; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth(), now.getDate() - i);
+    const slot = slotFor(club, d);
+    if (slot && !have.has(ymd(d))) out.push({ d, slot });
+  }
+  return out;
+}
+
+function EvidenceTab({ club, sessions, canCapture, isAdmin, staffById, location, onSaved, now }) {
   const [viewer, setViewer] = useState(null);
+  const [fillDate, setFillDate] = useState(null);
+  const missing = useMemo(() => missingDays(club, sessions, now), [club, sessions, now]);
+  const canRemove = (item) => isAdmin || (canCapture && item.status !== "approved");
+  const onRemove = async (photo, reason) => {
+    await removeEvidencePhoto(photo.id, reason);
+    toast({ title: "Đã gỡ ảnh", description: `Mã ảnh ${photo.code} · lý do: ${reason}` });
+    setViewer(null);
+    await onSaved();
+  };
   const recent = sessions.slice(0, 8);
   const entries = recent.flatMap((s) => s.photos.map((p) => ({ photo: p, club, status: s.status })));
   const urls = useSignedUrls(entries.map((e) => e.photo.storage_path));
   const indexOf = (photo) => entries.findIndex((e) => e.photo.id === photo.id);
   return (
     <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.2fr)]">
+      <div className="flex min-w-0 flex-col gap-5">
       {canCapture ? (
         <EvidenceCamera club={club} staffById={staffById} location={location} onSaved={onSaved} />
       ) : (
@@ -180,6 +205,30 @@ function EvidenceTab({ club, sessions, canCapture, isAdmin, staffById, location,
           Chỉ giáo viên được gán phụ trách CLB này (hoặc Tổ trưởng) mới chụp được minh chứng. Liên hệ Tổ trưởng để được gán tài khoản.
         </div>
       )}
+      <div className="fg-card p-5 sm:p-6">
+        <h3 className="mb-1 font-bold text-navy">Ngày còn thiếu minh chứng{missing.length ? ` (${missing.length})` : ""}</h3>
+        <p className="mb-3 text-xs text-muted-foreground">Các buổi có lịch trong 30 ngày qua mà chưa có ảnh.</p>
+        {missing.length === 0 ? (
+          <p className="rounded-xl bg-emerald-50 px-3 py-2 text-sm text-emerald-800">Không thiếu ngày nào trong 30 ngày qua.</p>
+        ) : (
+          <ul className="divide-y">
+            {missing.map(({ d, slot }) => (
+              <li key={ymd(d)} className="flex flex-wrap items-center justify-between gap-2 py-2.5 first:pt-0 last:pb-0">
+                <span className="text-sm text-navy">
+                  <span className="font-semibold">{DOW_FULL[d.getDay()]}, {fmtDate(d)}</span>
+                  <span className="ml-2 font-mono text-xs tabular-nums text-muted-foreground">{slot.start}–{slot.end}</span>
+                </span>
+                {canCapture && (
+                  <button type="button" onClick={() => setFillDate(d)} className="inline-flex h-9 items-center gap-1.5 rounded-xl bg-white px-3 text-sm font-semibold text-navy ring-1 ring-[rgba(38,39,93,0.15)] hover:bg-navy-soft">
+                    <ImagePlus className="w-4 h-4" aria-hidden="true" /> Bổ sung ảnh
+                  </button>
+                )}
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
+      </div>
       <div className="fg-card min-w-0 p-5 sm:p-6">
         <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
           <h3 className="font-bold text-navy">Minh chứng gần đây</h3>
@@ -216,7 +265,8 @@ function EvidenceTab({ club, sessions, canCapture, isAdmin, staffById, location,
           </div>
         )}
       </div>
-      {viewer !== null && <PhotoViewer entries={entries} index={viewer} onIndex={setViewer} onClose={() => setViewer(null)} staffById={staffById} location={location} />}
+      {viewer !== null && <PhotoViewer entries={entries} index={viewer} onIndex={setViewer} onClose={() => setViewer(null)} staffById={staffById} location={location} onRemove={onRemove} canRemove={canRemove} />}
+      {fillDate && <EvidenceBackfill club={club} date={fillDate} staffById={staffById} location={location} onClose={() => setFillDate(null)} onSaved={onSaved} />}
     </div>
   );
 }
@@ -235,6 +285,8 @@ export default function ClubDetail() {
   }, [now, id]);
   const evidence = useEvidence(range);
   const members = useMembers(id);
+  const attendanceReady = useAttendanceReady();
+  const tabs = TABS.filter((t) => t.key !== "attendance" || attendanceReady.data);
   const [tab, setTab] = useState("schedule");
   const [editing, setEditing] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
@@ -267,8 +319,8 @@ export default function ClubDetail() {
   const onKeyDown = (e) => {
     if (e.key !== "ArrowRight" && e.key !== "ArrowLeft") return;
     e.preventDefault();
-    const i = TABS.findIndex((t) => t.key === tab);
-    const n = TABS[(i + (e.key === "ArrowRight" ? 1 : TABS.length - 1)) % TABS.length].key;
+    const i = tabs.findIndex((t) => t.key === tab);
+    const n = tabs[(i + (e.key === "ArrowRight" ? 1 : tabs.length - 1)) % tabs.length].key;
     setTab(n);
     tabRefs.current[n]?.focus();
   };
@@ -335,14 +387,14 @@ export default function ClubDetail() {
                 ["Chờ duyệt", pending],
               ].map(([k, v]) => (
                 <div key={k}>
-                  <dt className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">{k}</dt>
+                  <dt className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">{k}</dt>
                   <dd className={`text-3xl font-extrabold tabular-nums ${tone.text}`}>{v}</dd>
                 </div>
               ))}
             </dl>
           </div>
           <div role="tablist" aria-label="Thông tin câu lạc bộ" className="flex overflow-x-auto border-t" onKeyDown={onKeyDown}>
-            {TABS.map((t) => {
+            {tabs.map((t) => {
               const active = t.key === tab;
               const Icon = t.icon;
               return (
@@ -360,7 +412,7 @@ export default function ClubDetail() {
                 >
                   <Icon className="w-4 h-4" aria-hidden="true" />
                   {t.label}
-                  {t.key === "evidence" && pending > 0 && <span className="rounded-full bg-amber-100 px-1.5 text-[11px] text-amber-800">{pending}</span>}
+                  {t.key === "evidence" && pending > 0 && <span className="rounded-full bg-amber-100 px-1.5 text-xs text-amber-800">{pending}</span>}
                   {active && <span className="absolute inset-x-3 bottom-0 h-1 rounded-full bg-yellow" />}
                 </button>
               );
@@ -371,8 +423,9 @@ export default function ClubDetail() {
         <div role="tabpanel" id={`panel-${tab}`} aria-labelledby={`tab-${tab}`}>
           {tab === "schedule" && <ScheduleTab club={club} sessions={sessions} now={now} />}
           {tab === "students" && <ClubMembers club={club} canEdit={canCapture} />}
+          {tab === "attendance" && <ClubAttendance club={club} canEdit={canCapture} role={user?.role} />}
           {tab === "evidence" && (
-            <EvidenceTab club={club} sessions={sessions} canCapture={canCapture} isAdmin={user?.role === "admin"} staffById={staffById} location={location} onSaved={() => invalidate(["evidence"])} />
+            <EvidenceTab club={club} sessions={sessions} canCapture={canCapture} isAdmin={user?.role === "admin"} staffById={staffById} location={location} now={now} onSaved={() => invalidate(["evidence"])} />
           )}
         </div>
 

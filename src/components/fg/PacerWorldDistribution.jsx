@@ -43,11 +43,11 @@ export default function PacerWorldDistribution({ pacer }) {
               <div className="flex items-baseline justify-between gap-2 mb-1.5">
                 <div className="min-w-0">
                   <span className="text-sm font-semibold text-navy">{b.label}</span>
-                  <span className="text-[11px] text-muted-foreground ml-2">{b.sub}</span>
+                  <span className="text-xs text-muted-foreground ml-2">{b.sub}</span>
                 </div>
                 <div className="shrink-0 flex items-baseline gap-1">
                   <span className="text-sm font-bold text-navy tabular-nums">{pct}%</span>
-                  <span className="text-[11px] text-muted-foreground tabular-nums">· {count} em</span>
+                  <span className="text-xs text-muted-foreground tabular-nums">· {count} em</span>
                 </div>
               </div>
 
@@ -59,7 +59,7 @@ export default function PacerWorldDistribution({ pacer }) {
                 <div className="h-1.5 rounded-full overflow-hidden flex-1" style={{ background: "#F4F5F8" }}>
                   <div className="h-full rounded-full" style={{ width: `${b.world}%`, background: "#D1D5DB" }} />
                 </div>
-                <span className="text-[11px] text-muted-foreground tabular-nums shrink-0">Thế giới {b.world}%</span>
+                <span className="text-xs text-muted-foreground tabular-nums shrink-0">Thế giới {b.world}%</span>
               </div>
             </div>
           );
@@ -67,7 +67,7 @@ export default function PacerWorldDistribution({ pacer }) {
       </div>
 
       <div className="mt-4 pt-3 border-t flex flex-wrap items-start justify-between gap-2" style={{ borderColor: "rgba(38,39,93,0.08)" }}>
-        <p className="text-[11px] text-muted-foreground max-w-[62%] leading-relaxed">
+        <p className="text-xs text-muted-foreground max-w-[62%] leading-relaxed">
           Dựa trên {withData} học sinh 9–17 tuổi có kết quả PACER. Học sinh dưới 9 tuổi chưa có chuẩn thế giới.
         </p>
         <div className="text-xs font-bold text-navy text-right">

@@ -89,7 +89,7 @@ export default function NormsComparison({ student, fitness, anthro }) {
                 </div>
                 <div className="h-2.5 rounded-full overflow-hidden" style={{ background: "#F4F5F8" }}>
                   <div
-                    className="h-full rounded-full transition-all"
+                    className="h-full rounded-full transition-[width] duration-500"
                     style={{ width: `${Math.max(2, Math.min(100, pacer.percentile))}%`, background: BAR_COLORS[pacer.tone] || BAR_COLORS.grey }}
                   />
                 </div>
@@ -101,7 +101,7 @@ export default function NormsComparison({ student, fitness, anthro }) {
               <div className="text-xs text-muted-foreground leading-snug">{NO_WORLD_STANDARD_NOTE}</div>
             )}
             {pacer.converted && (
-              <div className="text-[11px] font-semibold" style={{ color: "#8A6100" }}>
+              <div className="text-xs font-semibold" style={{ color: "#8A6100" }}>
                 {PACER_15M_ESTIMATE_NOTE} · quy đổi ≈ {pacer.laps20} lượt 20m
               </div>
             )}
@@ -148,7 +148,7 @@ export default function NormsComparison({ student, fitness, anthro }) {
       </div>
 
       {usedSources.length > 0 && (
-        <p className="mt-3 text-[11px] leading-relaxed text-muted-foreground">
+        <p className="mt-3 text-xs leading-relaxed text-muted-foreground">
           “Nếu không thay đổi” là nguy cơ theo nghiên cứu, không phải chẩn đoán. Nguồn:{" "}
           {usedSources.map((s, i) => (
             <span key={s.key}>

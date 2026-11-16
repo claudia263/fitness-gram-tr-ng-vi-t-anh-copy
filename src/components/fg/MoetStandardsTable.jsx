@@ -44,7 +44,7 @@ export default function MoetStandardsTable({ initialSex = "male", highlightAge =
                     {t.label}
                     {t.required && <span className="text-rose-600"> ★</span>}
                   </span>
-                  <span className="block text-[11px] font-normal text-muted-foreground">{t.unit}</span>
+                  <span className="block text-xs font-normal text-muted-foreground">{t.unit}</span>
                 </th>
               ))}
             </tr>
@@ -57,7 +57,7 @@ export default function MoetStandardsTable({ initialSex = "male", highlightAge =
                   {kind === "good" && (
                     <th scope="rowgroup" rowSpan={2} className="px-3 py-1.5 text-left align-middle font-extrabold text-navy tabular-nums">
                       {age}
-                      {hl && <span className="block text-[10px] font-semibold uppercase text-navy">tuổi của con</span>}
+                      {hl && <span className="block text-xs font-semibold uppercase text-navy">tuổi của con</span>}
                     </th>
                   )}
                   <td className={`px-3 py-1.5 font-semibold ${kind === "good" ? "text-emerald-700" : "text-amber-700"}`}>{kind === "good" ? "Tốt" : "Đạt"}</td>

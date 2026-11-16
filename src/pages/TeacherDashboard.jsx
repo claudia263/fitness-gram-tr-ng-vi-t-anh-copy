@@ -136,14 +136,14 @@ function MoetFields({ form, set, errors, student, testDate }) {
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div>
           <div className="text-sm font-bold text-navy">Bài test Bộ GD&ĐT (QĐ 53/2008)</div>
-          <div className="text-[11px] text-muted-foreground">★ bắt buộc · {ev?.age != null ? `chuẩn ${ev.age} tuổi, ${student.sex === "female" ? "nữ" : "nam"}` : "chọn học sinh và đợt để xếp loại"}</div>
+          <div className="text-xs text-muted-foreground">★ bắt buộc · {ev?.age != null ? `chuẩn ${ev.age} tuổi, ${student.sex === "female" ? "nữ" : "nam"}` : "chọn học sinh và đợt để xếp loại"}</div>
         </div>
         {ev?.overall ? (
           <span className="rounded-full px-3 py-1 text-xs font-bold text-white" style={{ background: LEVEL_COLOR[ev.overall] }}>
             Xếp loại: {MOET_LEVELS[ev.overall].label}
           </span>
         ) : ev?.measured ? (
-          <span className="text-[11px] text-muted-foreground">{ev.missing}</span>
+          <span className="text-xs text-muted-foreground">{ev.missing}</span>
         ) : null}
       </div>
       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
@@ -406,7 +406,7 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
                 className="fg-input h-11 px-3 text-sm font-semibold text-navy tabular-nums"
               />
               {form.pacer_level && (() => { const info = getPacerLevelInfo(Math.floor(Number(form.pacer_level))); return info ? (
-                <div className="text-[11px] text-muted-foreground leading-snug">
+                <div className="text-xs text-muted-foreground leading-snug">
                   Level {info.level}: {info.shuttles} bật · {info.speed} km/h · {info.cumTime} · {info.cumDist} m
                 </div>
               ) : null; })()}
@@ -424,7 +424,7 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
                 <option value="15m">15m (khối 1–5)</option>
                 <option value="20m">20m (khối 6+)</option>
               </select>
-              <span className="text-[11px] text-muted-foreground">Mặc định theo khối của học sinh</span>
+              <span className="text-xs text-muted-foreground">Mặc định theo khối của học sinh</span>
             </div>
             <NumField label="Chiều cao (cm)" value={form.height_cm} onChange={(v) => set("height_cm", v)} error={errors.height_cm} />
             <NumField label="Cân nặng (kg)" value={form.weight_kg} onChange={(v) => set("weight_kg", v)} error={errors.weight_kg} />

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
-import { useRole } from "@/lib/RoleContext";
+import { ROLE_LABELS, useRole } from "@/lib/RoleContext";
 import BrandLogo from "@/components/fg/BrandLogo";
 import { LogOut, Menu, X } from "lucide-react";
 import { NAV_BY_ROLE, activeNav } from "@/components/fg/navItems";
@@ -20,14 +20,19 @@ export default function AppHeader() {
   const current = activeNav(nav, location.pathname);
   const isActive = (to) => current === to;
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     sessionStorage.removeItem("fg_entered");
     sessionStorage.removeItem("fg_student_ids");
-    logout(false);
+    try {
+      await logout(false);
+    } catch (e) {
+      /* vẫn chuyển về trang đăng nhập */
+    }
     window.location.href = "/login";
   };
 
-  const displayName = user?.full_name || user?.email || "Phụ huynh";
+  const displayName = user?.full_name || user?.email || ROLE_LABELS[role] || "Phụ huynh";
+  const roleLabel = role !== "parent" ? ROLE_LABELS[role] : null;
 
   return (
     <header
@@ -41,11 +46,12 @@ export default function AppHeader() {
           </Link>
 
           {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-1">
+          <nav aria-label="Điều hướng chính" className="hidden lg:flex items-center gap-1">
             {nav.map((item) => (
               <Link
                 key={item.to}
                 to={item.to}
+                aria-current={isActive(item.to) ? "page" : undefined}
                 className="relative px-4 py-2 rounded-lg text-sm font-semibold transition-colors"
                 style={{ color: isActive(item.to) ? "#26275D" : "#6B6E8F" }}
               >
@@ -73,23 +79,29 @@ export default function AppHeader() {
               >
                 {(displayName || "?").slice(0, 1).toUpperCase()}
               </div>
-              <span className="text-sm font-semibold text-navy max-w-[120px] truncate">{displayName}</span>
+              <span className="flex flex-col leading-tight text-left">
+                <span className="text-sm font-semibold text-navy max-w-[140px] truncate">{displayName}</span>
+                {roleLabel && <span className="text-xs text-muted-foreground">{roleLabel}</span>}
+              </span>
             </Link>
 
             <button
               onClick={handleLogout}
               className="hidden sm:flex w-9 h-9 items-center justify-center rounded-full text-muted-foreground hover:text-navy hover:bg-[#F4F5F8]"
               title="Đăng xuất"
+              aria-label="Đăng xuất"
             >
-              <LogOut className="w-4 h-4" />
+              <LogOut className="w-4 h-4" aria-hidden="true" />
             </button>
 
             {/* Mobile menu toggle */}
             <button
               onClick={() => setMobileOpen((o) => !o)}
-              className="lg:hidden w-10 h-10 flex items-center justify-center rounded-lg text-navy"
+              aria-label={mobileOpen ? "Đóng menu" : "Mở menu"}
+              aria-expanded={mobileOpen}
+              className="lg:hidden w-11 h-11 flex items-center justify-center rounded-lg text-navy"
             >
-              {mobileOpen ? <X className="w-6 h-6" /> : <Menu className="w-6 h-6" />}
+              {mobileOpen ? <X className="w-6 h-6" aria-hidden="true" /> : <Menu className="w-6 h-6" aria-hidden="true" />}
             </button>
           </div>
         </div>

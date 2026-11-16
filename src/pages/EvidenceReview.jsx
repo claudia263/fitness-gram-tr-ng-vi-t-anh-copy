@@ -5,7 +5,7 @@ import { toast } from "@/components/ui/use-toast";
 import { reviewSession, useClubData, useEvidence, useInvalidateClubs, useSignedUrls } from "@/lib/clubs/api";
 import { checkClock, checkGeo } from "@/lib/clubs/evidence";
 import {
-  DOW_FULL, REJECT_REASONS, SPORTS, SPORT_ORDER, UNASSIGNED, checkTime, fmtDate, fmtHm, monthKey, parseYmd, scheduledInMonth, slotFor, teacherOf, ymd,
+  DOW_FULL, REJECT_REASONS, SPORTS, SPORT_ORDER, UNASSIGNED, checkPhotoTime, fmtDate, fmtHm, monthKey, parseYmd, scheduledInMonth, slotFor, teacherOf, ymd,
 } from "@/lib/clubs/model";
 import { CheckChip, ClubChip, PageHeader, StatusPill, chipCls } from "@/components/clubs/ClubUi";
 import PhotoViewer, { EvidenceThumb, isFlagged } from "@/components/clubs/PhotoViewer";
@@ -92,7 +92,7 @@ function ReviewCard({ item, urls, staffById, onReview, onOpen }) {
               <span className="font-mono tabular-nums text-navy">
                 Ảnh {i + 1} · {fmtHm(new Date(p.taken_at))}
               </span>
-              <CheckChip check={checkTime(club, p.taken_at)} />
+              <CheckChip check={checkPhotoTime(club, p)} />
               <CheckChip check={checkGeo(p)} />
               <CheckChip check={checkClock(p)} />
             </li>
@@ -270,7 +270,7 @@ export default function EvidenceReview() {
           <div className="-mx-5 overflow-x-auto sm:mx-0">
             <table className="w-full min-w-[720px] border-collapse text-sm">
               <thead>
-                <tr className="border-b text-left text-[11px] uppercase tracking-wide text-muted-foreground">
+                <tr className="border-b text-left text-xs uppercase tracking-wide text-muted-foreground">
                   <th className="py-2 pl-5 pr-2 font-semibold sm:pl-0">{groupBy === "club" ? "Câu lạc bộ" : "Giáo viên"}</th>
                   <th className="px-2 py-2 text-right font-semibold">Buổi theo lịch</th>
                   <th className="px-2 py-2 text-right font-semibold">Có minh chứng</th>
@@ -290,7 +290,7 @@ export default function EvidenceReview() {
                     <td className="px-2 py-3 text-right text-navy">{r.scheduled}</td>
                     <td className="px-2 py-3 text-right text-navy">
                       {r.withEvidence}
-                      {r.offSchedule > 0 && <span className="block text-[11px] font-normal text-amber-700">+{r.offSchedule} ngoài lịch</span>}
+                      {r.offSchedule > 0 && <span className="block text-xs font-normal text-amber-700">+{r.offSchedule} ngoài lịch</span>}
                     </td>
                     <td className="px-2 py-3 text-right font-semibold text-emerald-700">{r.approved}</td>
                     <td className="px-2 py-3 text-right font-semibold text-amber-700">{r.pending}</td>

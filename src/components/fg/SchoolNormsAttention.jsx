@@ -57,7 +57,7 @@ export default function SchoolNormsAttention({ rows, attention }) {
                 {r.flags.map((f) => {
                   const info = statusInfo(f.level === 2 ? "risk" : "improve");
                   return (
-                    <span key={f.key} className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full" style={TONE_STYLE[info.tone]}>
+                    <span key={f.key} className="text-xs font-bold uppercase tracking-wide px-2.5 py-1 rounded-full" style={TONE_STYLE[info.tone]}>
                       {f.name} · {info.label}
                     </span>
                   );

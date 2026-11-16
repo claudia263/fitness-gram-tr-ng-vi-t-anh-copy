@@ -62,7 +62,7 @@ export const AuthProvider = ({ children }) => {
       base44.auth.logout(window.location.href);
     } else {
       // Just remove the token without redirect
-      base44.auth.logout();
+      return base44.auth.logout();
     }
   };
 

@@ -94,14 +94,14 @@ export default function SchoolNormsTab({ classes, sessions }) {
 
 function Select({ label, value, onChange, options }) {
   return (
-    <div>
-      <label className="block text-xs font-semibold text-navy mb-1.5">{label}</label>
+    <label className="block">
+      <span className="block text-xs font-semibold text-navy mb-1.5">{label}</span>
       <select value={value} onChange={(e) => onChange(e.target.value)} className="fg-input w-full h-11 px-3 text-sm font-medium text-navy bg-white">
         <option value="">Tất cả</option>
         {options.map((o) => (
           <option key={o.value} value={o.value}>{o.label}</option>
         ))}
       </select>
-    </div>
+    </label>
   );
 }

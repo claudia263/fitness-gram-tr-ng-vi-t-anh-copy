@@ -107,7 +107,7 @@ export default function ClubFormDialog({ open, club, clubs, staff, staffById, no
       <DialogContent className="max-w-2xl max-h-[92vh] overflow-y-auto rounded-[22px] bg-white p-0 gap-0">
         <form onSubmit={submit} noValidate>
           <DialogHeader className="border-b px-5 py-4 text-left">
-            <p className="text-[11px] font-bold uppercase tracking-widest text-muted-foreground">{lockTeacher ? "Giáo viên phụ trách" : "Tổ trưởng Tổ Thể dục"}</p>
+            <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">{lockTeacher ? "Giáo viên phụ trách" : "Tổ trưởng Tổ Thể dục"}</p>
             <DialogTitle className="text-xl font-extrabold text-navy">{club ? `Sửa CLB ${club.name}` : "Thêm CLB phát sinh"}</DialogTitle>
             <DialogDescription>CLB hiện trong thời khoá biểu từ ngày áp dụng. Giáo viên được gán tài khoản mới chụp được minh chứng.</DialogDescription>
           </DialogHeader>

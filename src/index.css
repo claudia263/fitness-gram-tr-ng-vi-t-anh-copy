@@ -42,60 +42,147 @@
   }
 
   body {
-    background-color: #F0F4F8;
+    background-color: #F4F6FA;
     color: #26275D;
     font-family: "Be Vietnam Pro", ui-sans-serif, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
   }
+
+  /* Tiêu đề: gọn hơn, xuống dòng cân đối; số liệu thẳng hàng */
+  h1, h2, h3 {
+    letter-spacing: -0.015em;
+    text-wrap: balance;
+  }
+  p { text-wrap: pretty; }
+  .tabular-nums { font-variant-numeric: tabular-nums; }
+
+  /* Viền focus bàn phím: một kiểu duy nhất cho cả app */
+  :focus-visible {
+    outline: 2px solid #26275D;
+    outline-offset: 2px;
+    border-radius: 6px;
+  }
+  .on-navy :focus-visible,
+  .fg-on-navy :focus-visible {
+    outline-color: #F9DD0E;
+  }
+
+  ::selection { background: #F9DD0E; color: #26275D; }
 }
 
 @layer components {
+  /* Thẻ: viền mảnh + bóng nhẹ hai lớp; nhấc 2px khi rê chuột */
   .fg-card {
     background: #FFFFFF;
     border: 1px solid rgba(38, 39, 93, 0.08);
-    border-radius: 22px;
-    box-shadow: 0 8px 30px rgba(38, 39, 93, 0.07);
-    transition: transform 250ms ease, box-shadow 250ms ease;
+    border-radius: 18px;
+    box-shadow: 0 1px 2px rgba(38, 39, 93, 0.04), 0 8px 24px rgba(38, 39, 93, 0.05);
+    transition: transform 200ms cubic-bezier(0.22, 1, 0.36, 1), box-shadow 200ms ease, border-color 200ms ease;
   }
   .fg-card-hover:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 16px 40px rgba(38, 39, 93, 0.12);
+    transform: translateY(-2px);
+    border-color: rgba(38, 39, 93, 0.16);
+    box-shadow: 0 2px 4px rgba(38, 39, 93, 0.05), 0 14px 32px rgba(38, 39, 93, 0.09);
   }
+  .fg-card-hover:active { transform: translateY(0); }
+
+  /* Nút chính (vàng) và phụ (navy): bước nhẹ khi rê chuột, nhún khi bấm */
   .fg-btn-primary {
     background: #F9DD0E;
     color: #26275D;
     font-weight: 700;
-    border-radius: 14px;
-    transition: transform 180ms ease, box-shadow 180ms ease;
+    border-radius: 12px;
+    box-shadow: 0 1px 0 rgba(38, 39, 93, 0.12), inset 0 -2px 0 rgba(38, 39, 93, 0.10);
+    transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
   }
   .fg-btn-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(249, 221, 14, 0.25);
+    background: #FFE72E;
+    transform: translateY(-1px);
+    box-shadow: 0 6px 18px rgba(249, 221, 14, 0.35), inset 0 -2px 0 rgba(38, 39, 93, 0.10);
   }
   .fg-btn-primary:active {
-    transform: scale(0.98);
+    transform: translateY(0) scale(0.985);
   }
+  .fg-btn-primary:disabled { opacity: 0.7; cursor: not-allowed; transform: none; }
   .fg-btn-secondary {
     background: #26275D;
     color: #FFFFFF;
     font-weight: 600;
-    border-radius: 14px;
-    transition: transform 180ms ease, box-shadow 180ms ease;
+    border-radius: 12px;
+    transition: transform 160ms ease, box-shadow 160ms ease, background-color 160ms ease;
   }
   .fg-btn-secondary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 10px 30px rgba(38, 39, 93, 0.18);
+    background: #30316F;
+    transform: translateY(-1px);
+    box-shadow: 0 8px 20px rgba(38, 39, 93, 0.20);
   }
+  .fg-btn-secondary:active { transform: translateY(0) scale(0.985); }
   .fg-input {
-    border: 1px solid rgba(38, 39, 93, 0.15);
+    border: 1px solid rgba(38, 39, 93, 0.16);
     border-radius: 12px;
-    transition: border-color 180ms ease, box-shadow 180ms ease;
+    background: #FFFFFF;
+    transition: border-color 160ms ease, box-shadow 160ms ease;
   }
+  .fg-input:hover { border-color: rgba(38, 39, 93, 0.30); }
   .fg-input:focus {
     border-color: #26275D;
-    box-shadow: 0 0 0 4px rgba(249, 221, 14, 0.20);
+    box-shadow: 0 0 0 4px rgba(249, 221, 14, 0.30);
     outline: none;
   }
+
+  /* Nhãn nhỏ trên tiêu đề khối (chữ hoa, giãn chữ) */
+  .fg-eyebrow {
+    font-size: 12px;
+    font-weight: 600;
+    color: #5D6082;
+  }
+  /* Liên kết "Bỏ qua tới nội dung": chỉ hiện khi tab bằng bàn phím */
+  .fg-skip {
+    position: fixed;
+    left: 12px;
+    top: -60px;
+    z-index: 100;
+    padding: 10px 16px;
+    border-radius: 10px;
+    background: #F9DD0E;
+    color: #26275D;
+    font-weight: 700;
+    font-size: 14px;
+    transition: top 160ms ease;
+  }
+  .fg-skip:focus { top: 12px; }
+  /* Ô biểu tượng: nền xanh nhạt, chữ navy; vàng chỉ dành cho hành động chính */
+  .fg-icon-tile {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: #ECEEF8;
+    color: #26275D;
+    border-radius: 12px;
+    transition: background-color 200ms ease, color 200ms ease;
+  }
+  .fg-card-hover:hover .fg-icon-tile { background: #F9DD0E; }
+  /* Chip thông tin (lớp, năm học, cơ sở) */
+  .fg-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 5px 12px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #26275D;
+    background: #ECEEF8;
+  }
+  /* Liên kết: gạch chân vẽ ra từ trái khi rê chuột */
+  .fg-link {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-size: 0% 1.5px;
+    background-repeat: no-repeat;
+    background-position: 0 100%;
+    transition: background-size 220ms ease;
+  }
+  .fg-link:hover { background-size: 100% 1.5px; }
 }
 
 @keyframes fg-shimmer {

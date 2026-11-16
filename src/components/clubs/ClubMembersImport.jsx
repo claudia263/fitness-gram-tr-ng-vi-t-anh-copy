@@ -207,7 +207,7 @@ export default function ClubMembersImport({ club, members, onAdded }) {
                 <p className="truncate text-sm font-semibold text-navy">
                   {r.name} {r.cls && <span className="font-normal text-muted-foreground">· {r.cls}</span>}
                 </p>
-                <p className="flex flex-wrap items-center gap-1.5 text-[11px]">
+                <p className="flex flex-wrap items-center gap-1.5 text-xs">
                   <span className={`rounded px-1.5 font-medium ${STATUS[st].cls}`}>{STATUS[st].label}</span>
                   {picked && st !== "ambiguous" && <span className="text-muted-foreground">{[picked.class_name && `Lớp ${picked.class_name}`, picked.school_year].filter(Boolean).join(" · ")}</span>}
                   {warn && (

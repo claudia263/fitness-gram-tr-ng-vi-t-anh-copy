@@ -69,11 +69,11 @@ export function StatusPill({ status }) {
 export function CheckChip({ check }) {
   if (!check?.label) return null;
   return check.ok ? (
-    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-[11px] font-medium text-emerald-700">
+    <span className="inline-flex items-center gap-1 rounded-md bg-emerald-50 px-1.5 py-0.5 text-xs font-medium text-emerald-700">
       <Check className="w-3 h-3" aria-hidden="true" /> {check.label}
     </span>
   ) : (
-    <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-[11px] font-medium text-amber-700">
+    <span className="inline-flex items-center gap-1 rounded-md bg-amber-50 px-1.5 py-0.5 text-xs font-medium text-amber-700">
       <TriangleAlert className="w-3 h-3" aria-hidden="true" /> {check.label}
     </span>
   );

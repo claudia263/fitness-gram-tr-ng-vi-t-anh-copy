@@ -158,6 +158,9 @@ export function groupSlots(slots) {
 }
 
 // Ảnh chụp có nằm trong khung giờ sinh hoạt (±15 phút) không
+// Ảnh bổ sung (chụp/gửi sau) không đối chiếu giờ gửi với khung giờ sinh hoạt
+export const checkPhotoTime = (club, photo) => (photo.late_reason ? { ok: true, label: "" } : checkTime(club, photo.taken_at));
+
 export function checkTime(club, at) {
   const t = new Date(at);
   const slot = slotFor(club, t);

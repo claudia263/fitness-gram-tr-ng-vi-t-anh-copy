@@ -47,7 +47,7 @@ export default function SchoolNormsSummary({ summary }) {
             <div key={label} className="rounded-xl p-3" style={{ background: "#F7F8FC" }}>
               <div className="text-xl font-extrabold text-navy tabular-nums">{count}</div>
               <div className="text-xs text-muted-foreground">{label}</div>
-              <div className="text-[11px] text-muted-foreground tabular-nums">{bmi.total ? Math.round((count / bmi.total) * 100) : 0}%</div>
+              <div className="text-xs text-muted-foreground tabular-nums">{bmi.total ? Math.round((count / bmi.total) * 100) : 0}%</div>
             </div>
           ))}
         </div>

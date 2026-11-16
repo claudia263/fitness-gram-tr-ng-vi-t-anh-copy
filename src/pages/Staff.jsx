@@ -251,7 +251,7 @@ function PersonRow({ person, isAdmin, isMe, clubs, onChanged, onClubs }) {
         {person.role === "teacher" || person.role === "lead" ? (
           <>
             {theirClubs.map((c) => (
-              <span key={c.id} className="rounded-md bg-navy-soft px-1.5 py-0.5 text-[11px] font-medium text-navy">
+              <span key={c.id} className="rounded-md bg-navy-soft px-1.5 py-0.5 text-xs font-medium text-navy">
                 {c.name}
               </span>
             ))}

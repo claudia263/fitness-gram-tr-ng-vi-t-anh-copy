@@ -177,7 +177,7 @@ export default function StudentResultsView({ student, onNameClick }) {
 function SectionTitle({ title, subtitle }) {
   return (
     <div className="mb-4">
-      <h2 className="text-lg sm:text-xl font-extrabold text-navy uppercase tracking-tight">{title}</h2>
+      <h2 className="text-lg sm:text-xl font-extrabold text-navy">{title}</h2>
       {subtitle && <p className="text-sm text-muted-foreground">{subtitle}</p>}
     </div>
   );

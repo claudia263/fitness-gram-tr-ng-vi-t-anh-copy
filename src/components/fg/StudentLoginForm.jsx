@@ -108,7 +108,7 @@ export default function StudentLoginForm({ onEntered }) {
           <GoogleIcon className="w-4 h-4" /> Đăng nhập bằng Google
         </button>
 
-        <div className="flex items-center gap-3 text-[11px] uppercase tracking-wide text-muted-foreground">
+        <div className="flex items-center gap-3 text-xs uppercase tracking-wide text-muted-foreground">
           <span className="h-px flex-1 bg-[rgba(38,39,93,0.12)]" /> hoặc nhận link qua email <span className="h-px flex-1 bg-[rgba(38,39,93,0.12)]" />
         </div>
 

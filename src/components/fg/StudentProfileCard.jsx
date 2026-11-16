@@ -19,12 +19,12 @@ export default function StudentProfileCard({ student, className = "", onNameClic
       <div className="flex flex-col sm:flex-row sm:items-center gap-5">
         <div
           className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl flex items-center justify-center font-extrabold text-2xl shrink-0"
-          style={{ background: "#F9DD0E", color: "#26275D" }}
+          style={{ background: "#26275D", color: "#F9DD0E" }}
         >
           {initials}
         </div>
         <div className="flex-1 min-w-0">
-          <div className="text-xs font-semibold uppercase tracking-wide text-muted-foreground mb-1">Học sinh</div>
+          <div className="fg-eyebrow mb-1">Học sinh</div>
           {onNameClick ? (
             <button
               onClick={onNameClick}
@@ -54,14 +54,7 @@ export default function StudentProfileCard({ student, className = "", onNameClic
 }
 
 function Pill({ label }) {
-  return (
-    <span
-      className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold"
-      style={{ background: "#F4F5F8", color: "#26275D" }}
-    >
-      {label}
-    </span>
-  );
+  return <span className="fg-chip">{label}</span>;
 }
 
 function formatBirthDate(d) {

@@ -8,6 +8,8 @@ import StaffLoginForm from "@/components/fg/StaffLoginForm";
 import StudentLoginForm from "@/components/fg/StudentLoginForm";
 import { STUDENT_FLAG, fetchPublicSettings, isStudentEmail } from "@/lib/studentAuth";
 import { useAuth } from "@/lib/AuthContext";
+import { ROLE_HOMES } from "@/lib/RoleContext";
+import { STAFF_ROLES } from "@/lib/clubs/model";
 import { USAGE_NOTICE, track } from "@/lib/usage";
 
 export const STAFF_LOGIN_PATH = "/dang-nhap-can-bo";
@@ -30,6 +32,10 @@ export default function Login({ staff = false }) {
     fetchPublicSettings().then(setSettings);
   }, []);
   const studentLogin = settings?.student_login || useEmail;
+  // Cán bộ đã đăng nhập (vd giáo viên mở lại app trên điện thoại): vào thẳng trang của vai trò, không dừng ở form phụ huynh
+  if (!staff && user && STAFF_ROLES.includes(user.role)) {
+    return <Navigate to={ROLE_HOMES[user.role] || "/"} replace />;
+  }
   // Quay lại từ đăng nhập Google / link email của cán bộ (/login?staff=1) → chuyển sang trang cán bộ
   if (!staff && (new URLSearchParams(location.search).get("staff") || sessionStorage.getItem("fg_google_login"))) {
     return <Navigate to={{ pathname: STAFF_LOGIN_PATH, search: location.search, hash: location.hash }} replace />;
@@ -72,10 +78,10 @@ export default function Login({ staff = false }) {
       >
         <LoginVisual
           formOpen
-          title={staff ? <>Cổng làm việc<br />dành cho cán bộ nhà trường</> : undefined}
+          title={staff ? "Cổng làm việc dành cho cán bộ nhà trường" : undefined}
           subtitle={staff ? "Đăng nhập bằng tài khoản của nhà trường để quản lý dữ liệu thể chất và câu lạc bộ." : undefined}
         >
-          <div className="w-full max-w-sm mx-auto">
+          <div className="w-full max-w-md mx-auto lg:mx-0">
             {mode === "parent" ? (
               !settings && !returningStudent ? (
                 <div className="fg-card h-40 w-full max-w-sm mx-auto fg-skeleton" />
@@ -99,7 +105,7 @@ export default function Login({ staff = false }) {
             ) : (
               <StaffLoginForm />
             )}
-            <p className="mt-4 text-center text-[11px] leading-snug" style={{ color: "rgba(255,255,255,0.6)" }}>
+            <p className="mt-4 text-center text-xs leading-snug" style={{ color: "rgba(255,255,255,0.75)" }}>
               {USAGE_NOTICE}
             </p>
             {staff ? (
@@ -107,8 +113,12 @@ export default function Login({ staff = false }) {
                 ← Về trang phụ huynh / học sinh
               </Link>
             ) : (
-              <Link to={STAFF_LOGIN_PATH} className="mt-5 block text-center text-[11px] hover:underline" style={{ color: "rgba(255,255,255,0.45)" }}>
-                Dành cho cán bộ nhà trường
+              <Link
+                to={STAFF_LOGIN_PATH}
+                className="mt-5 flex h-12 w-full items-center justify-center rounded-xl text-sm font-semibold text-white transition hover:bg-white/10"
+                style={{ border: "1px solid rgba(255,255,255,0.35)" }}
+              >
+                Giáo viên, cán bộ nhà trường? Đăng nhập tại đây
               </Link>
             )}
           </div>

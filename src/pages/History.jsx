@@ -128,7 +128,7 @@ export default function History() {
 
 function Select({ label, value, onChange, options }) {
   return (
-    <div className="flex flex-col gap-1">
+    <label className="flex flex-col gap-1">
       <span className="text-xs font-semibold text-muted-foreground">{label}</span>
       <select
         value={value}
@@ -137,7 +137,7 @@ function Select({ label, value, onChange, options }) {
       >
         {options.map((o) => <option key={o.v} value={o.v}>{o.l}</option>)}
       </select>
-    </div>
+    </label>
   );
 }
 

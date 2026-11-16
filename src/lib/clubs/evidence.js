@@ -45,6 +45,7 @@ export function checkGeo(photo) {
 
 // Giờ điện thoại in trên ảnh lệch giờ máy chủ quá 5 phút → có thể đã chỉnh giờ máy
 export function checkClock(photo) {
+  if (photo.late_reason) return { ok: false, label: `Ảnh bổ sung: ${photo.late_reason}` };
   if (!photo.device_time) return { ok: true, label: "" };
   const diff = Math.abs(new Date(photo.device_time) - new Date(photo.taken_at));
   return diff > 5 * 60 * 1000 ? { ok: false, label: `Giờ máy lệch ${Math.round(diff / 60000)} phút` } : { ok: true, label: "" };
@@ -97,7 +98,7 @@ function fitText(ctx, text, maxW) {
 }
 
 // Vẽ dấu kiểu camera chấm công. Toạ độ thiết kế theo khung 400×300, co giãn theo cạnh ngắn của ảnh.
-function drawStamp(ctx, W, H, { time, pos, location, club, teacher, code, distance }) {
+function drawStamp(ctx, W, H, { time, pos, location, club, teacher, code, distance, lateFor }) {
   const u = Math.min(W, H) / 300;
   const B = H; // mép dưới
   const grad = ctx.createLinearGradient(0, B - 150 * u, 0, B);
@@ -145,7 +146,9 @@ function drawStamp(ctx, W, H, { time, pos, location, club, teacher, code, distan
   ctx.font = `500 ${9.5 * u}px ${MONO}`;
   const coordLine = pos
     ? `${fmtCoord(pos)} · ±${pos.acc} m${inside ? "" : ` · ngoài khuôn viên ${Math.round(distance)} m`}`
-    : "Không lấy được vị trí GPS";
+    : lateFor
+      ? "Ảnh bổ sung, không đính kèm vị trí GPS"
+      : "Không lấy được vị trí GPS";
   ctx.fillText(fitText(ctx, coordLine, maxW), 32 * u, B - 28 * u);
 
   ctx.fillStyle = "#FEF3B0";
@@ -177,10 +180,24 @@ function drawStamp(ctx, W, H, { time, pos, location, club, teacher, code, distan
   ctx.stroke();
   ctx.fillStyle = "#FFFFFF";
   ctx.font = `700 ${9.5 * u}px ${FONT}`;
-  ctx.fillText("ẢNH THẬT · FITNESSGRAM", bx + 24 * u, by + 15 * u, bw - 28 * u);
+  ctx.fillText(lateFor ? "ẢNH BỔ SUNG · FITNESSGRAM" : "ẢNH THẬT · FITNESSGRAM", bx + 24 * u, by + 15 * u, bw - 28 * u);
   ctx.fillStyle = "#CBD5E1";
   ctx.font = `500 ${9 * u}px ${MONO}`;
   ctx.fillText(code, bx + 10 * u, by + 28 * u);
+
+  // Ảnh bổ sung: băng vàng ở góc trên trái, ghi ngày của buổi được bổ sung
+  if (lateFor) {
+    const label = `BỔ SUNG CHO BUỔI ${lateFor}`;
+    ctx.font = `800 ${10 * u}px ${FONT}`;
+    const lw = Math.min(W - bw - 34 * u, ctx.measureText(label).width + 20 * u);
+    ctx.fillStyle = "#F9DD0E";
+    ctx.beginPath();
+    if (ctx.roundRect) ctx.roundRect(10 * u, 10 * u, lw, 22 * u, 4 * u);
+    else ctx.rect(10 * u, 10 * u, lw, 22 * u);
+    ctx.fill();
+    ctx.fillStyle = "#26275D";
+    ctx.fillText(label, 20 * u, 25 * u, lw - 20 * u);
+  }
 }
 
 // Nhận file từ camera → ảnh JPEG đã đóng dấu (tối đa 1600px cạnh dài)

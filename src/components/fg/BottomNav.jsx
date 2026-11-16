@@ -7,9 +7,11 @@ export default function BottomNav() {
   const { role } = useRole();
   const items = (NAV_BY_ROLE[role] || NAV_BY_ROLE.parent).slice(0, 5);
   const current = activeNav(items, location.pathname);
+  if (items.length < 2) return null;
 
   return (
     <nav
+      aria-label="Điều hướng chính"
       className="lg:hidden fixed bottom-0 left-0 right-0 z-40 bg-white"
       style={{ borderTop: "1px solid rgba(38,39,93,0.08)", paddingBottom: "env(safe-area-inset-bottom)" }}
     >
@@ -21,16 +23,17 @@ export default function BottomNav() {
             <Link
               key={item.to}
               to={item.to}
+              aria-current={active ? "page" : undefined}
               className="flex flex-col items-center justify-center gap-1 py-2.5 relative"
               style={{ minHeight: 56 }}
             >
               {active && (
                 <span className="absolute top-0 h-1 w-8 rounded-full" style={{ background: "#F9DD0E" }} />
               )}
-              <Icon className="w-5 h-5" style={{ color: active ? "#26275D" : "#9CA3B5" }} strokeWidth={active ? 2.4 : 2} />
+              <Icon className="w-5 h-5" aria-hidden="true" style={{ color: active ? "#26275D" : "#6B6E8F" }} strokeWidth={active ? 2.4 : 2} />
               <span
-                className="text-[11px] font-semibold"
-                style={{ color: active ? "#26275D" : "#9CA3B5" }}
+                className="text-xs font-semibold"
+                style={{ color: active ? "#26275D" : "#6B6E8F" }}
               >
                 {item.short || item.label}
               </span>

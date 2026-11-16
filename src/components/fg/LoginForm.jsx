@@ -13,22 +13,26 @@ export default function LoginForm({ onSubmit, busy, error }) {
   };
 
   return (
-    <div className="w-full max-w-sm mx-auto">
-      <form onSubmit={handleSubmit} className="fg-card p-5 sm:p-6 space-y-4">
+    <div className="w-full">
+      <form onSubmit={handleSubmit} className="fg-card p-6 sm:p-8 space-y-5" style={{ boxShadow: "0 24px 60px rgba(10,11,40,0.35)" }}>
         <div>
-          <label className="text-xs font-semibold text-muted-foreground uppercase mb-1.5 block">Họ tên học sinh</label>
+          <h2 className="text-xl font-extrabold text-navy">Tra cứu kết quả của con</h2>
+          <p className="text-sm text-muted-foreground mt-1">Nhập đúng họ tên học sinh đang học tại trường.</p>
+        </div>
+        <div>
+          <label htmlFor="fg-student-name" className="fg-eyebrow mb-1.5 block">Họ tên học sinh</label>
           <div className="relative">
             <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
             <input
+              id="fg-student-name"
               type="text"
               value={name}
               onChange={(e) => setName(e.target.value)}
               placeholder="VD: Nguyễn Văn A"
-              className="fg-input w-full h-11 pl-11 pr-4 text-sm font-medium text-navy"
+              className="fg-input w-full h-12 pl-11 pr-4 text-base font-medium text-navy"
               autoFocus
             />
           </div>
-          <p className="text-xs text-muted-foreground mt-1.5">Nhập đúng họ tên của con đang học tại trường để tra cứu kết quả.</p>
         </div>
 
         {error && (
@@ -41,7 +45,7 @@ export default function LoginForm({ onSubmit, busy, error }) {
         <button
           type="submit"
           disabled={busy}
-          className="fg-btn-primary w-full h-11 inline-flex items-center justify-center gap-2 text-sm"
+          className="fg-btn-primary w-full h-12 inline-flex items-center justify-center gap-2 text-base"
         >
           {busy ? (
             <span className="w-4 h-4 border-2 border-navy/30 border-t-navy rounded-full animate-spin" />
@@ -53,7 +57,7 @@ export default function LoginForm({ onSubmit, busy, error }) {
         </button>
       </form>
 
-      <p className="text-center text-xs text-muted-foreground mt-3">
+      <p className="text-center text-xs mt-3" style={{ color: "rgba(255,255,255,0.7)" }}>
         Chỉ xem được kết quả của học sinh mang tên bạn nhập
       </p>
     </div>

@@ -46,7 +46,7 @@ export default function MoetResultCard({ student, fitnessRows }) {
         </div>
         {ev && (
           <div className="text-right">
-            <p className="text-[11px] font-semibold uppercase tracking-wide text-muted-foreground">Xếp loại thể lực</p>
+            <p className="text-xs font-semibold uppercase tracking-wide text-muted-foreground">Xếp loại thể lực</p>
             {ev.overall ? <LevelPill level={ev.overall} large /> : <p className="max-w-[260px] text-xs text-muted-foreground">{ev.missing}</p>}
           </div>
         )}
@@ -66,7 +66,7 @@ export default function MoetResultCard({ student, fitnessRows }) {
                     {t.label}
                     {t.required && <span className="text-rose-600"> ★</span>}
                   </p>
-                  <p className="text-[11px] text-muted-foreground">{t.ability}</p>
+                  <p className="text-xs text-muted-foreground">{t.ability}</p>
                 </div>
                 <LevelPill level={t.level} />
               </div>
@@ -75,7 +75,7 @@ export default function MoetResultCard({ student, fitnessRows }) {
                 <span className="text-xs font-semibold text-muted-foreground">{t.unit}</span>
               </p>
               {t.threshold && (
-                <p className="mt-0.5 text-[11px] text-muted-foreground tabular-nums">
+                <p className="mt-0.5 text-xs text-muted-foreground tabular-nums">
                   Tốt {formatThreshold(t, t.threshold.good, "good")} · Đạt {formatThreshold(t, t.threshold.pass, "pass")}
                 </p>
               )}
@@ -88,14 +88,14 @@ export default function MoetResultCard({ student, fitnessRows }) {
         <div className="mt-4 space-y-3">
           {risks.map((r) => (
             <div key={r.key} className="rounded-xl px-3 py-2.5" style={{ background: "rgba(192, 57, 43, 0.06)", border: "1px solid rgba(192, 57, 43, 0.15)" }}>
-              <div className="mb-1 flex items-center gap-1.5 text-[11px] font-bold uppercase tracking-wide" style={{ color: "#C0392B" }}>
+              <div className="mb-1 flex items-center gap-1.5 text-xs font-bold uppercase tracking-wide" style={{ color: "#C0392B" }}>
                 <TriangleAlert className="h-3.5 w-3.5" aria-hidden="true" /> Nếu không thay đổi · {r.tests.join(", ")}
               </div>
               <p className="text-xs leading-relaxed text-navy">{r.text}</p>
               <p className="mt-1.5 text-xs font-medium text-navy">
                 <b>Có thể làm ngay:</b> {r.action}
               </p>
-              <p className="mt-1 text-[10px] text-muted-foreground">{r.evidenceLabel} · Đây là nguy cơ theo nghiên cứu, không phải chẩn đoán.</p>
+              <p className="mt-1 text-xs text-muted-foreground">{r.evidenceLabel} · Đây là nguy cơ theo nghiên cứu, không phải chẩn đoán.</p>
             </div>
           ))}
         </div>

@@ -105,7 +105,7 @@ function AddPanel({ club, members, onAdded }) {
                       {[s.class_name ? `Lớp ${s.class_name}` : null, birthYear(s.birth_date) ? `SN ${birthYear(s.birth_date)}` : null, s.school_year].filter(Boolean).join(" · ")}
                     </p>
                     {warn && (
-                      <p className="mt-0.5 inline-flex items-center gap-1 text-[11px] font-medium text-amber-700">
+                      <p className="mt-0.5 inline-flex items-center gap-1 text-xs font-medium text-amber-700">
                         <TriangleAlert className="h-3 w-3" aria-hidden="true" /> Ngoài khối của CLB
                       </p>
                     )}
@@ -226,8 +226,8 @@ export default function ClubMembers({ club, canEdit }) {
                   <p className="truncate text-sm font-semibold text-navy">{m.full_name}</p>
                   <p className="flex flex-wrap items-center gap-x-2 text-xs text-muted-foreground">
                     {m.class_name ? `Lớp ${m.class_name}` : "Chưa rõ lớp"}
-                    {!m.student_id && <span className="rounded bg-slate-100 px-1.5 text-[11px] font-medium text-slate-600">Nhập tay</span>}
-                    {outOfLevel(club, m.grade) && <span className="text-[11px] font-medium text-amber-700">Ngoài khối</span>}
+                    {!m.student_id && <span className="rounded bg-slate-100 px-1.5 text-xs font-medium text-slate-600">Nhập tay</span>}
+                    {outOfLevel(club, m.grade) && <span className="text-xs font-medium text-amber-700">Ngoài khối</span>}
                   </p>
                 </div>
                 {canEdit &&

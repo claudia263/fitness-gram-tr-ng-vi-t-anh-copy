@@ -25,13 +25,13 @@ function ClubCard({ club, staffById, pending, now, onOpen }) {
           {levelLabel(club.levels)}
         </span>
         {club.source === "manual" && (
-          <span className="rounded-md bg-navy px-1.5 py-0.5 text-[10px] font-bold uppercase text-white">{upcoming ? `Mới · từ ${fmtShortDate(parseYmd(club.starts_on))}` : "Phát sinh"}</span>
+          <span className="rounded-md bg-navy px-1.5 py-0.5 text-xs font-bold uppercase text-white">{upcoming ? `Mới · từ ${fmtShortDate(parseYmd(club.starts_on))}` : "Phát sinh"}</span>
         )}
       </div>
       <div className="flex flex-1 flex-col gap-3 p-5">
         <div>
           <h3 className="text-lg font-extrabold leading-tight text-navy">
-            <button type="button" onClick={() => onOpen(club.id)} className="text-left after:absolute after:inset-0 after:content-[''] focus:outline-none">
+            <button type="button" onClick={() => onOpen(club.id)} className="text-left after:absolute after:inset-0 after:rounded-[18px] after:content-[''] focus:outline-none focus-visible:after:ring-2 focus-visible:after:ring-navy focus-visible:after:ring-offset-2">
               {club.name}
             </button>
           </h3>
@@ -84,6 +84,11 @@ export default function Clubs() {
   const [adding, setAdding] = useState(false);
   const canAdd = canAddClub(user);
   useTrackView("xem_danh_sach_clb");
+  const isTeacher = user?.role === "teacher";
+  const mineIds = useMemo(() => new Set(clubs.filter((c) => c.teacher_id === user?.id || c.created_by === user?.id).map((c) => c.id)), [clubs, user?.id]);
+  // Giáo viên có CLB phụ trách: mở sẵn "CLB của tôi"; chưa có thì xem tất cả
+  const [scopeChoice, setScopeChoice] = useState(null);
+  const scope = isTeacher ? scopeChoice || (mineIds.size > 0 ? "mine" : "all") : "all";
 
   const pendingByClub = useMemo(() => {
     const m = {};
@@ -91,7 +96,7 @@ export default function Clubs() {
     return m;
   }, [evidence.data]);
 
-  const filtered = clubs.filter((c) => level === "all" || c.levels.includes(level));
+  const filtered = clubs.filter((c) => (level === "all" || c.levels.includes(level)) && (scope === "all" || mineIds.has(c.id)));
   const perWeek = filtered.reduce((n, c) => n + c.slots.length, 0);
   const switchView = (v) => {
     setView(v);
@@ -105,13 +110,29 @@ export default function Clubs() {
   return (
     <PageTransition>
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <PageHeader icon={Trophy} title="Câu lạc bộ thể thao" subtitle={`Năm học ${schoolYear(now)} · CS Gò Vấp · ${filtered.length} CLB · ${perWeek} buổi/tuần`}>
+        <PageHeader icon={Trophy} title={isTeacher && scope === "mine" ? "CLB của tôi" : "Câu lạc bộ thể thao"} subtitle={`Năm học ${schoolYear(now)} · CS Gò Vấp · ${filtered.length} CLB · ${perWeek} buổi/tuần`}>
           {canAdd && (
             <button type="button" onClick={() => setAdding(true)} className="fg-btn-primary inline-flex h-10 items-center gap-2 px-4 text-sm">
               <Plus className="w-4 h-4" aria-hidden="true" /> Thêm CLB phát sinh
             </button>
           )}
         </PageHeader>
+
+        {isTeacher && !loading && !error && (
+          <div className="mb-4 flex flex-wrap items-center gap-2">
+            <div className="inline-flex gap-1 rounded-2xl bg-white p-1 ring-1 ring-[rgba(38,39,93,0.08)]" role="group" aria-label="Phạm vi CLB">
+              <button type="button" aria-pressed={scope === "mine"} onClick={() => setScopeChoice("mine")} className={chipCls(scope === "mine")}>
+                CLB của tôi ({mineIds.size})
+              </button>
+              <button type="button" aria-pressed={scope === "all"} onClick={() => setScopeChoice("all")} className={chipCls(scope === "all")}>
+                Tất cả CLB ({clubs.length})
+              </button>
+            </div>
+            {mineIds.size === 0 && (
+              <p className="text-sm text-muted-foreground">Bạn chưa được phân công CLB nào. Liên hệ Tổ trưởng, hoặc thêm CLB phát sinh.</p>
+            )}
+          </div>
+        )}
 
         <div className="mb-6 flex flex-wrap items-center gap-2">
           <div className="inline-flex gap-1 rounded-2xl bg-white p-1 ring-1 ring-[rgba(38,39,93,0.08)]" role="group" aria-label="Cách xem">

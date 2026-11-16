@@ -11,7 +11,7 @@ const TEST_META = {
 };
 
 function TestIcon({ name, className }) {
-  const common = { className, strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", fill: "none" };
+  const common = { className, stroke: "currentColor", strokeWidth: 2, strokeLinecap: "round", strokeLinejoin: "round", fill: "none" };
   switch (name) {
     case "run":
       return (
@@ -75,18 +75,12 @@ export default function FitnessCard({ testKey, current, previous, delay = 0, onO
       className="fg-card fg-card-hover p-5 text-left w-full flex flex-col gap-3 min-h-[170px]"
     >
       <div className="flex items-start justify-between">
-        <div
-          className="w-11 h-11 rounded-xl flex items-center justify-center"
-          style={{ background: "#F9DD0E", color: "#26275D" }}
-        >
+        <div className="fg-icon-tile w-11 h-11">
           <TestIcon name={meta.icon} className="w-6 h-6" />
         </div>
         {hasCurrent && (
-          <span
-            className="text-[10px] font-bold uppercase tracking-wide px-2.5 py-1 rounded-full"
-            style={{ background: "#F4F5F8", color: "#6B6E8F" }}
-          >
-            Kết quả gần nhất
+          <span className="fg-eyebrow !text-xs px-2.5 py-1 rounded-full" style={{ background: "#F4F5F8" }}>
+            Gần nhất
           </span>
         )}
       </div>

@@ -177,7 +177,7 @@ function StatBox({ label, value, unit, sub, highlight }) {
 function PacerStat({ label, value }) {
   return (
     <div className="rounded-xl p-3 bg-white">
-      <div className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wide">{label}</div>
+      <div className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">{label}</div>
       <div className="text-sm font-extrabold text-navy tabular-nums">{value ?? "--"}</div>
     </div>
   );
