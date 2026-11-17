@@ -3,6 +3,8 @@ import { Link, Navigate, useLocation, useNavigate } from "react-router-dom";
 import { motion, useReducedMotion } from "framer-motion";
 import { base44 } from "@/api/base44Client";
 import LoginVisual from "@/components/fg/LoginVisual";
+import LoginVisualSport from "@/components/fg/sport/LoginVisualSport";
+import LoginFormSport from "@/components/fg/sport/LoginFormSport";
 import LoginForm from "@/components/fg/LoginForm";
 import StaffLoginForm from "@/components/fg/StaffLoginForm";
 import StudentLoginForm from "@/components/fg/StudentLoginForm";
@@ -46,6 +48,10 @@ export default function Login({ staff = false }) {
     return <Navigate to={{ pathname: STAFF_LOGIN_PATH, search: location.search, hash: location.hash }} replace />;
   }
 
+  // Trang MGIS dùng khung đăng nhập kiểu thể thao mới; Việt Anh giữ khung cũ
+  const Shell = IS_MAIN_SCHOOL ? LoginVisual : LoginVisualSport;
+  const ParentForm = IS_MAIN_SCHOOL ? LoginForm : LoginFormSport;
+
   const enterResults = () => {
     setLeaving(true);
     setTimeout(() => navigate("/"), 300);
@@ -81,7 +87,7 @@ export default function Login({ staff = false }) {
         transition={{ duration: reduce ? 0.2 : 0.5 }}
         className="absolute inset-0"
       >
-        <LoginVisual
+        <Shell
           formOpen
           title={staff ? "Cổng làm việc dành cho cán bộ nhà trường" : undefined}
           subtitle={staff ? "Đăng nhập bằng tài khoản của nhà trường để quản lý dữ liệu thể chất và câu lạc bộ." : undefined}
@@ -127,7 +133,7 @@ export default function Login({ staff = false }) {
                 </>
               ) : (
                 <>
-                  <LoginForm onSubmit={handleSubmit} busy={busy} error={error} />
+                  <ParentForm onSubmit={handleSubmit} busy={busy} error={error} />
                   {IS_MAIN_SCHOOL && (
                     <button type="button" onClick={() => setUseEmail(true)} className="mt-3 block w-full text-center text-xs font-semibold underline-offset-2 hover:underline" style={{ color: "rgba(255,255,255,0.85)" }}>
                       Có email học sinh @student.truongvietanh.com? Đăng nhập bằng email
@@ -160,7 +166,7 @@ export default function Login({ staff = false }) {
               </Link>
             )}
           </div>
-        </LoginVisual>
+        </Shell>
       </motion.div>
     </div>
   );

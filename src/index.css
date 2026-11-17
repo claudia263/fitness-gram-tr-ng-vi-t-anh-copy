@@ -185,6 +185,14 @@
   .fg-link:hover { background-size: 100% 1.5px; }
 }
 
+/* Trang đăng nhập kiểu thể thao (MGIS) */
+.fg-track { animation: fg-drift 26s ease-in-out infinite alternate; transform-origin: center; }
+.fg-spin { animation: fg-spin 0.8s linear infinite; }
+@keyframes fg-drift { from { transform: translate3d(0, 0, 0) scale(1); } to { transform: translate3d(-12px, 7px, 0) scale(1.02); } }
+@keyframes fg-spin { to { transform: rotate(360deg); } }
+.fg-sport a:focus-visible { outline-color: var(--accent); }
+@media (max-width: 389px) and (max-height: 740px) { .fgs-desc { display: none; } }
+
 @keyframes fg-shimmer {
   0% { background-position: -468px 0; }
   100% { background-position: 468px 0; }
