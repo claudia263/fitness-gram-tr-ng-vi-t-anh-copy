@@ -14,9 +14,10 @@ const ratio = (t, value, ref) => {
 
 export function moetRadarData(ev) {
   return ev.tests.map((t) => {
-    const hasStd = t.threshold && t.threshold.good != null;
-    const you = t.value != null && hasStd ? Math.min(MAX, ratio(t, t.value, t.threshold.good)) : 0;
-    const pass = hasStd && t.threshold.pass != null ? Math.min(MAX, ratio(t, t.threshold.pass, t.threshold.good)) : null;
+    const th = t.threshold || t.refThreshold;
+    const hasStd = th && th.good != null;
+    const you = t.value != null && hasStd ? Math.min(MAX, ratio(t, t.value, th.good)) : 0;
+    const pass = hasStd && th.pass != null ? Math.min(MAX, ratio(t, th.pass, th.good)) : null;
     return { key: t.key, subject: SHORT[t.key] || t.label, you, good: hasStd ? 100 : null, pass, value: t.value, unit: t.unit, level: t.level, label: t.label };
   });
 }
@@ -53,6 +54,7 @@ export default function MoetRadar({ ev }) {
       <figcaption className="px-1 pb-1">
         <p className="text-sm font-bold text-navy">Radar 6 bài so với chuẩn</p>
         <p className="text-xs text-muted-foreground">Đường Tốt = 100 · càng ra ngoài càng tốt · {measured}/6 bài có kết quả</p>
+        {ev.refAge != null && <p className="mt-1 text-xs font-medium text-navy">Em chưa tròn 6 tuổi nên so với chuẩn 6 tuổi để tham khảo, chưa xếp loại.</p>}
       </figcaption>
       <div role="img" aria-label={`Biểu đồ lục giác 6 bài test theo chuẩn Bộ GD&ĐT. ${summary}`} style={{ width: "100%", height: 270 }}>
         <ResponsiveContainer>

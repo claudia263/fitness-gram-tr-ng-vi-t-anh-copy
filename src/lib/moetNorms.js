@@ -94,10 +94,14 @@ export function moetLevel(test, value, threshold) {
 //   Đạt: tất cả từ mức Đạt trở lên · Chưa đạt: có chỉ tiêu dưới mức Đạt
 export function evaluateMoet({ sex, birthDate, testDate, result }) {
   const age = moetAge(birthDate, testDate);
+  // Từ 5 tuổi đến dưới 6 tuổi: không xếp loại, nhưng vẽ radar tham khảo theo chuẩn 6 tuổi
+  const months = ageInMonths(birthDate, testDate);
+  const refAge = age == null && months != null && months >= 60 ? 6 : null;
   const tests = MOET_TESTS.map((t) => {
     const value = result?.[t.field];
     const threshold = age != null ? moetThreshold(sex, age, t.key) : null;
-    return { ...t, value: value ?? null, threshold, level: moetLevel(t, value, threshold) };
+    const refThreshold = refAge != null ? moetThreshold(sex, refAge, t.key) : null;
+    return { ...t, value: value ?? null, threshold, refThreshold, level: moetLevel(t, value, threshold) };
   });
   const measured = tests.filter((t) => t.level);
   const hasRequired = MOET_TESTS.filter((t) => t.required).every((r) => measured.some((m) => m.key === r.key));
@@ -108,7 +112,7 @@ export function evaluateMoet({ sex, birthDate, testDate, result }) {
   else if (measured.length < 4 || !hasRequired) missing = "Cần đủ 4 bài, trong đó có Bật xa tại chỗ và Chạy tuỳ sức 5 phút";
   else if (measured.some((t) => t.level === "chua_dat")) overall = "chua_dat";
   else overall = measured.filter((t) => t.level !== "tot").length <= 1 ? "tot" : "dat";
-  return { age, tests, measured: measured.length, overall, missing };
+  return { age, refAge, tests, measured: measured.length, overall, missing };
 }
 
 export const hasMoetData = (result) => MOET_TESTS.some((t) => result?.[t.field] != null);

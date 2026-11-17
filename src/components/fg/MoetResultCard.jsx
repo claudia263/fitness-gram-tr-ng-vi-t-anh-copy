@@ -23,7 +23,7 @@ export default function MoetResultCard({ student, fitnessRows }) {
   const latest = rows[rows.length - 1];
   const ev = latest ? evaluateMoet({ sex: student.sex, birthDate: student.birth_date, testDate: latest.session?.test_date, result: latest }) : null;
   const shown = ev ? ev.tests.filter((t) => t.chosen || t.value != null) : [];
-  const radarOk = !!ev && ev.age != null && ev.tests.some((t) => t.value != null && t.threshold);
+  const radarOk = !!ev && (ev.age != null || ev.refAge != null) && ev.tests.some((t) => t.value != null && (t.threshold || t.refThreshold));
   // "Nếu không thay đổi" cho các năng lực có bài Chưa đạt (gộp bài cùng năng lực)
   const failed = shown.filter((t) => t.level === "chua_dat");
   const riskKeys = [...new Set(failed.map((t) => MOET_RISK_KEY[t.key]))];
