@@ -1,4 +1,8 @@
 // Entities cho các bảng Supabase (API giống Base44 SDK: list/filter/get/create/update/delete...).
+import { SCHOOL } from '../lib/school.js';
+
+// Các bảng có cột `school`: tự lọc và tự gắn theo trường của trang đang mở (Việt Anh hoặc MGIS)
+const SCOPED = new Set(['students', 'classes', 'test_sessions']);
 const TABLES = {
   Student: 'students',
   Class: 'classes',
@@ -73,21 +77,24 @@ async function query(supabase, table, filter, sort, limit) {
 }
 
 function makeEntity(supabase, table) {
+  const scoped = SCOPED.has(table);
+  const inSite = (f) => (scoped ? { ...f, school: SCHOOL.id } : f);
+  const tag = (row) => (scoped ? { school: SCHOOL.id, ...row } : row);
   return {
-    list: (sort, limit) => query(supabase, table, {}, sort, limit),
-    filter: (filter, sort, limit) => query(supabase, table, filter, sort, limit),
+    list: (sort, limit) => query(supabase, table, inSite({}), sort, limit),
+    filter: (filter, sort, limit) => query(supabase, table, inSite(filter || {}), sort, limit),
     async get(id) {
       const { data, error } = await supabase.from(table).select('*').eq('id', id).single();
       if (error) fail(error);
       return data;
     },
     async create(row) {
-      const { data, error } = await supabase.from(table).insert(row).select().single();
+      const { data, error } = await supabase.from(table).insert(tag(row)).select().single();
       if (error) fail(error);
       return data;
     },
     async bulkCreate(rows) {
-      const { data, error } = await supabase.from(table).insert(rows).select();
+      const { data, error } = await supabase.from(table).insert(rows.map(tag)).select();
       if (error) fail(error);
       return data;
     },

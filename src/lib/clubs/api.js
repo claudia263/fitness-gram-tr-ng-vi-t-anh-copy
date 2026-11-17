@@ -26,7 +26,7 @@ export async function fetchClubs() {
 }
 
 export async function fetchStaff() {
-  const { data, error } = await supabase.from("profiles").select("id, email, full_name, role").neq("role", "user").order("full_name");
+  const { data, error } = await supabase.from("profiles").select("id, email, full_name, role, school").neq("role", "user").order("full_name");
   if (error) fail(error);
   return data;
 }

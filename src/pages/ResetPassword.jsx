@@ -1,3 +1,4 @@
+import { appPath } from "@/lib/school";
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
@@ -29,7 +30,7 @@ export default function ResetPassword() {
     setLoading(true);
     try {
       await base44.auth.resetPassword({ newPassword });
-      window.location.href = "/login";
+      window.location.href = appPath("/login");
     } catch (err) {
       setError(err.message || "Failed to reset password");
     } finally {

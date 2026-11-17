@@ -2,6 +2,8 @@ import { motion, useReducedMotion } from "framer-motion";
 import { ArrowRight } from "lucide-react";
 import { Image } from "@/components/ui/image";
 import MascotSprite from "@/components/fg/MascotSprite";
+import BrandLogo from "@/components/fg/BrandLogo";
+import { IS_MAIN_SCHOOL, SCHOOL } from "@/lib/school";
 
 const EMBLEM_URL =
   "https://media.base44.com/images/public/6aa2ecca7110e8b5faae6a4b/8474eed90_LOGOVANG10x.png";
@@ -19,7 +21,7 @@ export default function LoginVisual({ onLoginClick, formOpen = false, title, sub
   return (
     <div
       className="fg-on-navy absolute inset-0 overflow-y-auto flex flex-col gap-6 p-6 sm:p-10 lg:px-16 lg:py-10"
-      style={{ background: "radial-gradient(120% 90% at 15% 0%, #33357F 0%, #26275D 55%, #1F2050 100%)" }}
+      style={{ background: IS_MAIN_SCHOOL ? "radial-gradient(120% 90% at 15% 0%, #33357F 0%, #26275D 55%, #1F2050 100%)" : "radial-gradient(120% 90% at 15% 0%, #14785A 0%, #0E5A43 55%, #08382A 100%)" }}
     >
       {/* Decorative background graphics */}
       <svg className="absolute inset-0 w-full h-full" viewBox="0 0 600 800" preserveAspectRatio="xMidYMid slice" aria-hidden="true">
@@ -62,6 +64,9 @@ export default function LoginVisual({ onLoginClick, formOpen = false, title, sub
 
       {/* Top: logo */}
       <motion.div {...fade(0.1, -15)} className="relative z-10 flex justify-center lg:justify-start w-full max-w-[1200px] mx-auto">
+        {!IS_MAIN_SCHOOL ? (
+          <BrandLogo size={52} variant="light" />
+        ) : (
         <div className="flex items-center gap-3">
           <div className="shrink-0" style={{ width: 56, height: 56 }}>
             <Image src={EMBLEM_URL} alt="Logo Trường Việt Anh" className="w-full h-full" fittingType="fit" />
@@ -71,6 +76,7 @@ export default function LoginVisual({ onLoginClick, formOpen = false, title, sub
             <div className="text-xs font-semibold tracking-[0.14em] uppercase" style={{ color: "rgba(255,255,255,0.55)" }}>Trường Việt Anh</div>
           </div>
         </div>
+        )}
       </motion.div>
 
       {/* Hai cột trên máy tính: lời chào + linh vật bên trái, thẻ đăng nhập bên phải. Điện thoại: xếp dọc. */}
@@ -86,7 +92,7 @@ export default function LoginVisual({ onLoginClick, formOpen = false, title, sub
           className="max-w-md text-[15px] sm:text-base leading-relaxed"
           style={{ color: "rgba(255,255,255,0.78)" }}
         >
-          {subtitle ?? "Mỗi chỉ số hôm nay là một bước tiến trên hành trình khỏe mạnh và trưởng thành của học sinh Việt Anh."}
+          {subtitle ?? `Mỗi chỉ số hôm nay là một bước tiến trên hành trình khỏe mạnh và trưởng thành của học sinh ${IS_MAIN_SCHOOL ? "Việt Anh" : SCHOOL.name}.`}
         </motion.p>
 
         {/* Lion mascot illustration */}
@@ -94,7 +100,7 @@ export default function LoginVisual({ onLoginClick, formOpen = false, title, sub
           initial={reduce ? { opacity: 0 } : { opacity: 0, x: -50, scale: 0.96 }}
           animate={{ opacity: 1, x: 0, scale: 1 }}
           transition={reduce ? { duration: 0.2 } : { duration: 0.9, ease, delay: 0.5 }}
-          className="relative hidden sm:flex items-center justify-center lg:justify-start w-full"
+          className={`relative ${IS_MAIN_SCHOOL ? "hidden sm:flex" : "hidden"} items-center justify-center lg:justify-start w-full`}
         >
           {/* Yellow motion trail behind mascot */}
           <motion.svg
@@ -136,7 +142,7 @@ export default function LoginVisual({ onLoginClick, formOpen = false, title, sub
       <motion.div {...fade(0.6, 20)} className="relative z-10 flex items-center justify-center lg:justify-start gap-3 w-full max-w-[1200px] mx-auto">
         <div className="h-1 w-10 rounded-full" style={{ background: "#F9DD0E" }} />
         <span className="text-sm font-medium" style={{ color: "rgba(255,255,255,0.7)" }}>
-          Hành trình khỏe mạnh – Tương lai vững vàng
+          {SCHOOL.tagline}
         </span>
       </motion.div>
     </div>

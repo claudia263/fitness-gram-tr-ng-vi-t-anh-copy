@@ -3,7 +3,8 @@ import { Link } from "react-router-dom";
 import { base44 } from "@/api/base44Client";
 import { useAuth } from "@/lib/AuthContext";
 import { ROLE_HOMES } from "@/lib/RoleContext";
-import { ROLE_LABELS, STAFF_ROLES } from "@/lib/clubs/model";
+import { ROLE_LABELS } from "@/lib/clubs/model";
+import { SCHOOL, appPath, appUrl, siteRole } from "@/lib/school";
 import { Mail, Lock, LogIn, AlertCircle, ShieldCheck, Send, MailCheck } from "lucide-react";
 import GoogleIcon from "@/components/GoogleIcon";
 import { trackAndWait } from "@/lib/usage";
@@ -30,14 +31,14 @@ export default function StaffLoginForm() {
   const [linkMode, setLinkMode] = useState(false); // đăng nhập lần đầu bằng link email
   const [linkSent, setLinkSent] = useState("");
 
-  const isStaff = isAuthenticated && STAFF_ROLES.includes(user?.role);
+  const isStaff = isAuthenticated && !!siteRole(user);
 
   const enterManagement = async (role = user?.role, cach = null) => {
     if (cach) await trackAndWait("dang_nhap", { chiTiet: { cach } });
     sessionStorage.setItem("fg_entered", "true");
     sessionStorage.removeItem("fg_student_ids");
     sessionStorage.removeItem(GOOGLE_FLAG);
-    window.location.href = ROLE_HOMES[role] || "/admin";
+    window.location.href = appPath(ROLE_HOMES[role] || "/admin");
   };
 
   useEffect(() => {
@@ -57,7 +58,7 @@ export default function StaffLoginForm() {
     try {
       await base44.auth.loginViaEmailPassword(email.trim(), password);
       const me = await base44.auth.me();
-      if (!STAFF_ROLES.includes(me?.role)) {
+      if (!siteRole(me)) {
         setError("Tài khoản này chưa được cấp quyền cán bộ. Vui lòng liên hệ nhà trường để được cấp quyền.");
         setBusy(false);
         return;
@@ -76,7 +77,7 @@ export default function StaffLoginForm() {
     setBusy(true);
     setError("");
     try {
-      await base44.auth.sendLoginLink(target, `${window.location.origin}/login?staff=1`);
+      await base44.auth.sendLoginLink(target, appUrl("/login?staff=1"));
       setLinkSent(target);
     } catch (err) {
       setError(
@@ -94,7 +95,7 @@ export default function StaffLoginForm() {
     sessionStorage.setItem(GOOGLE_FLAG, "1");
     try {
       // hd: chỉ gợi ý tài khoản Google Workspace của trường
-      await base44.auth.loginWithProvider("google", `${window.location.origin}/login?staff=1`, { hd: SCHOOL_DOMAIN, prompt: "select_account" });
+      await base44.auth.loginWithProvider("google", appUrl("/login?staff=1"), SCHOOL.staffDomain ? { hd: SCHOOL_DOMAIN, prompt: "select_account" } : { prompt: "select_account" });
     } catch (err) {
       sessionStorage.removeItem(GOOGLE_FLAG);
       setError("Chưa mở được đăng nhập Google. Vui lòng thử lại hoặc dùng email và mật khẩu.");
@@ -222,7 +223,7 @@ export default function StaffLoginForm() {
       <form onSubmit={handleSubmit} className="fg-card p-6 sm:p-8 space-y-5" style={{ boxShadow: "0 24px 60px rgba(10,11,40,0.35)" }}>
         <div>
           <h2 className="text-xl font-extrabold text-navy">Đăng nhập cán bộ</h2>
-          <p className="text-sm text-muted-foreground mt-1">Giáo viên dùng email Google @{SCHOOL_DOMAIN} của trường để vào thẳng trang CLB.</p>
+          <p className="text-sm text-muted-foreground mt-1">{SCHOOL.staffDomain ? `Giáo viên dùng email Google @${SCHOOL_DOMAIN} của trường để vào thẳng trang CLB.` : "Dùng email Google đã được cấp quyền quản trị để vào trang làm việc."}</p>
         </div>
 
         {googleEnabled && (

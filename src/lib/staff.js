@@ -26,7 +26,7 @@ export function useRefreshStaff() {
 
 // Admin: thêm hoặc cập nhật lời mời. Tổ trưởng: chỉ thêm mới, vai trò giáo viên (RLS).
 export async function inviteStaff(list, { upsert }) {
-  const rows = list.map((r) => ({ email: r.email.toLowerCase(), role: r.role, full_name: r.full_name || null }));
+  const rows = list.map((r) => ({ email: r.email.toLowerCase(), role: r.role, full_name: r.full_name || null, school: r.school || "vietanh" }));
   const q = upsert ? supabase.from("staff_invites").upsert(rows, { onConflict: "email" }) : supabase.from("staff_invites").insert(rows);
   const { error } = await q;
   if (error) {
@@ -36,12 +36,14 @@ export async function inviteStaff(list, { upsert }) {
 }
 
 // Admin đổi vai trò: sửa tài khoản (nếu đã có) và lời mời cho khớp nhau
-export async function setRole({ email, profileId, full_name }, role) {
+export async function setRole({ email, profileId, full_name, school }, role) {
+  // Quản trị trường giữ trường của mình; các vai trò khác thuộc Việt Anh
+  const newSchool = role === "school_admin" ? school || "vietanh" : "vietanh";
   if (profileId) {
-    const { error } = await supabase.from("profiles").update({ role }).eq("id", profileId);
+    const { error } = await supabase.from("profiles").update({ role, school: newSchool }).eq("id", profileId);
     if (error) fail(error);
   }
-  await inviteStaff([{ email, role, full_name }], { upsert: true });
+  await inviteStaff([{ email, role, full_name, school: newSchool }], { upsert: true });
 }
 
 // Admin gỡ quyền: tài khoản về "thường" (không vào được khu cán bộ) và xoá lời mời

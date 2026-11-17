@@ -8,21 +8,25 @@ import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/lib/AuthContext";
 import { useClubData } from "@/lib/clubs/api";
 import { ROLE_LABELS, STAFF_ROLES, norm, teacherOf } from "@/lib/clubs/model";
+import { SCHOOLS } from "@/lib/school";
 import { inviteStaff, parseStaffLines, revokeStaff, setRole, setTeacherClubs, useInvites, useRefreshStaff } from "@/lib/staff";
 import { track, useTrackView } from "@/lib/usage";
 
 const btnCls = "inline-flex h-9 shrink-0 items-center gap-1.5 rounded-xl px-3 text-sm font-semibold disabled:opacity-50";
-const ROLE_ORDER = ["admin", "lead", "hr", "teacher"];
+const ROLE_ORDER = ["admin", "school_admin", "lead", "hr", "teacher"];
+const APP_ROLES = [...STAFF_ROLES, "school_admin"];
 const ROLE_HINT = {
   admin: "Toàn quyền: dữ liệu thể lực, CLB, duyệt, tài khoản",
   lead: "Quản lý CLB, lịch, chụp minh chứng mọi CLB, mời giáo viên",
   hr: "Xem kho ảnh, duyệt / từ chối minh chứng",
   teacher: "Chụp minh chứng, thêm học viên cho CLB mình phụ trách",
+  school_admin: "Quản trị MỘT trường: chỉ thấy và nhập dữ liệu của trường được chọn (không vào CLB, không thấy trường khác)",
 };
 
 function AddStaff({ isAdmin, people, onDone }) {
   const [text, setText] = useState("");
   const [role, setRoleValue] = useState("teacher");
+  const [school, setSchool] = useState("mgis");
   const [busy, setBusy] = useState(false);
   const known = useMemo(() => new Set(people.map((p) => p.email)), [people]);
   const parsed = useMemo(() => parseStaffLines(text), [text]);
@@ -31,7 +35,7 @@ function AddStaff({ isAdmin, people, onDone }) {
   const submit = async () => {
     setBusy(true);
     try {
-      await inviteStaff(valid.map((p) => ({ ...p, role })), { upsert: false });
+      await inviteStaff(valid.map((p) => ({ ...p, role, school: role === "school_admin" ? school : "vietanh" })), { upsert: false });
       track("them_can_bo", { soLan: valid.length, chiTiet: { vai_tro: role } });
       toast({ title: `Đã thêm ${valid.length} cán bộ`, description: "Gửi cho từng người hướng dẫn đăng nhập lần đầu bên dưới." });
       setText("");
@@ -111,6 +115,20 @@ function AddStaff({ isAdmin, people, onDone }) {
             ))}
           </select>
         </div>
+        {role === "school_admin" && (
+          <div className="min-w-[170px]">
+            <label htmlFor="staff-school" className="mb-1 block text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+              Trường
+            </label>
+            <select id="staff-school" className="fg-input h-10 w-full bg-white px-3 text-sm text-navy" value={school} onChange={(e) => setSchool(e.target.value)}>
+              {Object.values(SCHOOLS).map((s) => (
+                <option key={s.id} value={s.id}>
+                  {s.name}
+                </option>
+              ))}
+            </select>
+          </div>
+        )}
         <button type="button" disabled={!valid.length || busy} onClick={submit} className="fg-btn-secondary inline-flex h-10 items-center gap-2 px-5 text-sm disabled:opacity-50">
           {busy && <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />}
           Thêm {valid.length || ""} người
@@ -237,14 +255,14 @@ function PersonRow({ person, isAdmin, isMe, clubs, onChanged, onClubs }) {
               }, `Đã đổi vai trò thành ${ROLE_LABELS[role]}`);
             }}
           >
-            {ROLE_ORDER.map((r) => (
+            {ROLE_ORDER.filter((r) => r !== "school_admin" || person.role === "school_admin").map((r) => (
               <option key={r} value={r}>
                 {ROLE_LABELS[r]}
               </option>
             ))}
           </select>
         ) : (
-          <span className="text-sm text-navy">{ROLE_LABELS[person.role]}</span>
+          <span className="text-sm text-navy">{ROLE_LABELS[person.role]}{person.role === "school_admin" ? ` · ${SCHOOLS[person.school]?.name ?? person.school}` : ""}</span>
         )}
       </div>
       <div className="flex min-w-[160px] flex-1 flex-wrap items-center gap-1.5">
@@ -300,13 +318,13 @@ export default function Staff() {
   // Gộp tài khoản đã có (profiles) và lời mời chưa kích hoạt (staff_invites) theo email
   const people = useMemo(() => {
     const byEmail = new Map();
-    for (const p of staff.filter((s) => STAFF_ROLES.includes(s.role))) {
-      byEmail.set(norm(p.email), { email: p.email.toLowerCase(), full_name: p.full_name, role: p.role, profileId: p.id });
+    for (const p of staff.filter((s) => APP_ROLES.includes(s.role))) {
+      byEmail.set(norm(p.email), { email: p.email.toLowerCase(), full_name: p.full_name, role: p.role, profileId: p.id, school: p.school });
     }
     for (const i of invites.data || []) {
       const cur = byEmail.get(norm(i.email));
       if (cur) cur.full_name = cur.full_name || i.full_name;
-      else byEmail.set(norm(i.email), { email: i.email, full_name: i.full_name, role: i.role, profileId: null });
+      else byEmail.set(norm(i.email), { email: i.email, full_name: i.full_name, role: i.role, profileId: null, school: i.school });
     }
     return [...byEmail.values()].sort((a, b) => ROLE_ORDER.indexOf(a.role) - ROLE_ORDER.indexOf(b.role) || (a.full_name || a.email).localeCompare(b.full_name || b.email, "vi"));
   }, [staff, invites.data]);

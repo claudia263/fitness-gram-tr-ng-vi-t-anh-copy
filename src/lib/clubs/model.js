@@ -3,7 +3,7 @@
 //   starts_on, ends_on, note, source, slots: [{ dow, start: "HH:MM", end: "HH:MM", place }] }
 
 export const STAFF_ROLES = ["admin", "lead", "hr", "teacher"];
-export const ROLE_LABELS = { admin: "Quản trị", lead: "Tổ trưởng Tổ Thể dục", hr: "Phòng Nhân sự", teacher: "Giáo viên" };
+export const ROLE_LABELS = { admin: "Quản trị", school_admin: "Quản trị trường", lead: "Tổ trưởng Tổ Thể dục", hr: "Phòng Nhân sự", teacher: "Giáo viên" };
 export const CLUB_MANAGERS = ["admin", "lead"];
 export const REVIEWERS = ["admin", "hr"];
 // Giáo viên được thêm CLB (tự phụ trách), sửa CLB mình phụ trách / tạo, xoá CLB phát sinh do mình tạo

@@ -2,6 +2,7 @@
 // nhưng chạy trên Supabase. Nhờ vậy không phải sửa từng trang.
 import { createClient } from '@supabase/supabase-js';
 import { createEntities } from './entities';
+import { appPath, appUrl } from '../lib/school.js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
@@ -26,12 +27,13 @@ const auth = {
     const { data } = await supabase.auth.getSession();
     const user = data.session?.user;
     if (!user) throw authError('Not authenticated');
-    const { data: profile } = await supabase.from('profiles').select('full_name, role').eq('id', user.id).maybeSingle();
+    const { data: profile } = await supabase.from('profiles').select('full_name, role, school').eq('id', user.id).maybeSingle();
     return {
       id: user.id,
       email: user.email,
       full_name: profile?.full_name || user.user_metadata?.full_name || '',
       role: profile?.role || 'user',
+      school: profile?.school || 'vietanh',
     };
   },
   async isAuthenticated() {
@@ -61,7 +63,7 @@ const auth = {
   },
   async resetPasswordRequest(email) {
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}/reset-password`,
+      redirectTo: appUrl('/reset-password'),
     });
     if (error) throw authError(error.message, 400);
   },
@@ -96,10 +98,10 @@ const auth = {
     await supabase.auth.signOut();
     sessionStorage.removeItem('fg_entered');
     sessionStorage.removeItem('fg_student_ids');
-    if (redirectUrl) window.location.href = '/login';
+    if (redirectUrl) window.location.href = appPath('/login');
   },
   redirectToLogin() {
-    window.location.href = '/login';
+    window.location.href = appPath('/login');
   },
 };
 

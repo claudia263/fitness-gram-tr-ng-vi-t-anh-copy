@@ -9,7 +9,7 @@ import StudentLoginForm from "@/components/fg/StudentLoginForm";
 import { STUDENT_FLAG, fetchPublicSettings, isStudentEmail } from "@/lib/studentAuth";
 import { useAuth } from "@/lib/AuthContext";
 import { ROLE_HOMES } from "@/lib/RoleContext";
-import { STAFF_ROLES } from "@/lib/clubs/model";
+import { SCHOOL, IS_MAIN_SCHOOL, siteRole } from "@/lib/school";
 import { USAGE_NOTICE, track } from "@/lib/usage";
 
 export const STAFF_LOGIN_PATH = "/dang-nhap-can-bo";
@@ -31,10 +31,11 @@ export default function Login({ staff = false }) {
   useEffect(() => {
     fetchPublicSettings().then(setSettings);
   }, []);
-  const studentLogin = settings?.student_login || useEmail;
+  // Đăng nhập bằng email học sinh chỉ có ở Việt Anh
+  const studentLogin = IS_MAIN_SCHOOL && (settings?.student_login || useEmail);
   // Cán bộ đã đăng nhập (vd giáo viên mở lại app trên điện thoại): vào thẳng trang của vai trò, không dừng ở form phụ huynh
-  if (!staff && user && STAFF_ROLES.includes(user.role)) {
-    return <Navigate to={ROLE_HOMES[user.role] || "/"} replace />;
+  if (!staff && user && siteRole(user)) {
+    return <Navigate to={ROLE_HOMES[siteRole(user)] || "/"} replace />;
   }
   // Quay lại từ đăng nhập Google / link email của cán bộ (/login?staff=1) → chuyển sang trang cán bộ
   if (!staff && (new URLSearchParams(location.search).get("staff") || sessionStorage.getItem("fg_google_login"))) {
@@ -50,7 +51,7 @@ export default function Login({ staff = false }) {
     setBusy(true);
     setError("");
     try {
-      const matched = await base44.rpc("lookup_students", { p_name: name });
+      const matched = await base44.rpc("lookup_students", { p_name: name, p_school: SCHOOL.id });
       if (matched.length === 0) {
         setError("Không tìm thấy học sinh với tên này trong danh sách trường. Vui lòng kiểm tra lại họ tên.");
         setBusy(false);
@@ -83,7 +84,7 @@ export default function Login({ staff = false }) {
         >
           <div className="w-full max-w-md mx-auto lg:mx-0">
             {mode === "parent" ? (
-              !settings && !returningStudent ? (
+              IS_MAIN_SCHOOL && !settings && !returningStudent ? (
                 <div className="fg-card h-40 w-full max-w-sm mx-auto fg-skeleton" />
               ) : studentLogin ? (
                 <>
@@ -97,9 +98,11 @@ export default function Login({ staff = false }) {
               ) : (
                 <>
                   <LoginForm onSubmit={handleSubmit} busy={busy} error={error} />
-                  <button type="button" onClick={() => setUseEmail(true)} className="mt-3 block w-full text-center text-xs font-semibold underline-offset-2 hover:underline" style={{ color: "rgba(255,255,255,0.85)" }}>
-                    Có email học sinh @student.truongvietanh.com? Đăng nhập bằng email
-                  </button>
+                  {IS_MAIN_SCHOOL && (
+                    <button type="button" onClick={() => setUseEmail(true)} className="mt-3 block w-full text-center text-xs font-semibold underline-offset-2 hover:underline" style={{ color: "rgba(255,255,255,0.85)" }}>
+                      Có email học sinh @student.truongvietanh.com? Đăng nhập bằng email
+                    </button>
+                  )}
                 </>
               )
             ) : (

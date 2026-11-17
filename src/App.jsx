@@ -12,7 +12,7 @@ import { RoleProvider } from '@/lib/RoleContext';
 import { StudentProvider } from '@/lib/StudentContext';
 import AppLayout from '@/components/fg/AppLayout';
 import Login from '@/pages/Login';
-import Mgis from '@/pages/Mgis';
+import { BASENAME, IS_MAIN_SCHOOL, SCHOOL } from '@/lib/school';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
@@ -54,7 +54,6 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
-      <Route path="/mgis" element={<Mgis />} />
       <Route path="/login" element={<Login />} />
       <Route path="/dang-nhap-can-bo" element={<Login staff />} />
       <Route path="/register" element={<Register />} />
@@ -68,14 +67,19 @@ const AuthenticatedApp = () => {
           <Route path="/history" element={<History />} />
           <Route path="/profile" element={<Profile />} />
           <Route path="/chuan-the-luc" element={<MoetStandards />} />
-          <Route path="/teacher" element={<AdminRoute><TeacherDashboard /></AdminRoute>} />
-          <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
-          <Route path="/admin/du-lieu" element={<AdminRoute><AdminData /></AdminRoute>} />
-          <Route path="/clb" element={<StaffRoute roles={STAFF_ROLES}><Clubs /></StaffRoute>} />
-          <Route path="/clb/kho-anh" element={<AdminRoute><EvidenceArchive /></AdminRoute>} />
-          <Route path="/clb/duyet" element={<AdminRoute><EvidenceReview /></AdminRoute>} />
-          <Route path="/clb/:id" element={<StaffRoute roles={STAFF_ROLES}><ClubDetail /></StaffRoute>} />
-          <Route path="/can-bo" element={<AdminRoute><Staff /></AdminRoute>} />
+          <Route path="/teacher" element={<AdminRoute roles={["admin", "school_admin"]}><TeacherDashboard /></AdminRoute>} />
+          <Route path="/admin" element={<AdminRoute roles={["admin", "school_admin"]}><AdminDashboard /></AdminRoute>} />
+          {/* CLB, kho ảnh, dữ liệu hệ thống và quản lý cán bộ chỉ có ở trang Việt Anh */}
+          {IS_MAIN_SCHOOL && (
+            <>
+              <Route path="/admin/du-lieu" element={<AdminRoute><AdminData /></AdminRoute>} />
+              <Route path="/clb" element={<StaffRoute roles={STAFF_ROLES}><Clubs /></StaffRoute>} />
+              <Route path="/clb/kho-anh" element={<AdminRoute><EvidenceArchive /></AdminRoute>} />
+              <Route path="/clb/duyet" element={<AdminRoute><EvidenceReview /></AdminRoute>} />
+              <Route path="/clb/:id" element={<StaffRoute roles={STAFF_ROLES}><ClubDetail /></StaffRoute>} />
+              <Route path="/can-bo" element={<AdminRoute><Staff /></AdminRoute>} />
+            </>
+          )}
         </Route>
       </Route>
 
@@ -87,13 +91,16 @@ const AuthenticatedApp = () => {
 
 function App() {
   useEffect(() => startUsageClock(), []);
+  useEffect(() => {
+    if (!IS_MAIN_SCHOOL) document.title = `Fitness Gram – ${SCHOOL.name}`;
+  }, []);
 
   return (
     <AuthProvider>
       <RoleProvider>
         <StudentProvider>
           <QueryClientProvider client={queryClientInstance}>
-          <Router>
+          <Router basename={BASENAME || undefined}>
             <ScrollToTop />
             <AuthenticatedApp />
           </Router>

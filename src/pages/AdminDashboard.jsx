@@ -11,9 +11,8 @@ import { campusLabel, campusesOf, sessionDateRange } from "@/lib/campus";
 import CampusTabs from "@/components/fg/CampusTabs";
 import { useCampusScope } from "@/lib/campusScope";
 import { LEVELS, levelOfGrade } from "@/lib/clubs/model";
+import { IS_MAIN_SCHOOL, SCHOOL, inSchool } from "@/lib/school";
 import { Users, School, ClipboardList, Plus, Loader2, CheckCircle2, UploadCloud, AlertCircle, FileSpreadsheet, ClipboardCheck, Pencil } from "lucide-react";
-
-const isVietAnh = (r) => (r.school || 'vietanh') === 'vietanh';
 
 export default function AdminDashboard() {
   const [allStudents, setStudents] = useState([]);
@@ -35,9 +34,9 @@ export default function AdminDashboard() {
     ]);
     const m = {};
     [...fi, ...an].forEach((r) => (m[r.session_id] = m[r.session_id] || new Set()).add(r.student_id));
-    setStudents(st.filter(isVietAnh));
-    setClasses(cl.filter(isVietAnh).sort((a, b) => campusLabel(a.campus).localeCompare(campusLabel(b.campus), "vi") || (Number(a.grade) || 0) - (Number(b.grade) || 0) || (a.name || "").localeCompare(b.name || "")));
-    setSessions(se.filter(isVietAnh));
+    setStudents(st.filter(inSchool));
+    setClasses(cl.filter(inSchool).sort((a, b) => campusLabel(a.campus).localeCompare(campusLabel(b.campus), "vi") || (Number(a.grade) || 0) - (Number(b.grade) || 0) || (a.name || "").localeCompare(b.name || "")));
+    setSessions(se.filter(inSchool));
     setMeasured(m);
     setLoading(false);
   };
@@ -80,7 +79,7 @@ export default function AdminDashboard() {
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-navy">Admin</h1>
             <p className="text-sm text-muted-foreground">
-              Fitness Gram — Trường Việt Anh{campus ? ` · ${campusLabel(campus)}` : ""}{latestYear ? ` · Năm học ${latestYear}` : ""}
+              Fitness Gram — {SCHOOL.name}{campus ? ` · ${campusLabel(campus)}` : ""}{latestYear ? ` · Năm học ${latestYear}` : ""}
             </p>
           </div>
         </div>
@@ -114,7 +113,7 @@ export default function AdminDashboard() {
               />
             </div>
 
-            <StudentEmailPanel students={students} classes={classes} onSaved={loadAll} />
+            {IS_MAIN_SCHOOL && <StudentEmailPanel students={students} classes={classes} onSaved={loadAll} />}
 
             <ExportStudentsPanel students={allStudents} classes={allClasses} sessions={allSessions} campuses={campuses} />
 
@@ -154,9 +153,9 @@ export default function AdminDashboard() {
                               <div className="flex items-center gap-4 text-sm">
                                 <span className="font-semibold text-navy tabular-nums">{sessionDateRange(s)}</span>
                                 <span className="text-xs text-muted-foreground tabular-nums">{measured[s.id]?.size || 0} học sinh có kết quả</span>
-                                <Link to="/admin/du-lieu?bang=test_sessions" title="Sửa đợt (ngày, cơ sở, đợt số)" aria-label={`Sửa đợt ${s.name}`} className="rounded-lg p-1.5 text-muted-foreground hover:bg-navy-soft hover:text-navy">
+                                {IS_MAIN_SCHOOL && <Link to="/admin/du-lieu?bang=test_sessions" title="Sửa đợt (ngày, cơ sở, đợt số)" aria-label={`Sửa đợt ${s.name}`} className="rounded-lg p-1.5 text-muted-foreground hover:bg-navy-soft hover:text-navy">
                                   <Pencil className="w-4 h-4" />
-                                </Link>
+                                </Link>}
                               </div>
                             </div>
                           ))}
@@ -204,7 +203,7 @@ function suggestRound(sessions, year, campus) {
 
 function SessionForm({ campuses, sessions, latestYear, onCreated }) {
   const year0 = latestYear || "2026–2027";
-  const [form, setForm] = useState(() => ({ name: "", test_date: "", end_date: "", semester: "Học kỳ I", school_year: year0, campus: campuses[0] || "", round_no: String(suggestRound(sessions, year0, campuses[0] || "")), notes: "" }));
+  const [form, setForm] = useState(() => ({ name: "", test_date: "", end_date: "", semester: "Học kỳ I", school_year: year0, campus: campuses[0] || SCHOOL.defaultCampus, round_no: String(suggestRound(sessions, year0, campuses[0] || SCHOOL.defaultCampus)), notes: "" }));
   const [customCampus, setCustomCampus] = useState(campuses.length === 0);
   const setCampus = (campus) => setForm((f) => ({ ...f, campus, round_no: String(suggestRound(sessions, f.school_year, campus)) }));
   const [file, setFile] = useState(null);
@@ -224,6 +223,7 @@ function SessionForm({ campuses, sessions, latestYear, onCreated }) {
     try {
       const res = await importFitnessExcel(file, {
         ...sessionMeta,
+        school: SCHOOL.id,
         school_year: form.school_year,
         session_name: form.name,
         test_date: form.test_date,

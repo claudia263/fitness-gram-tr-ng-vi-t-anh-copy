@@ -1,4 +1,5 @@
 // Mục điều hướng theo vai trò (dùng chung cho thanh trên và thanh dưới trên điện thoại)
+import { IS_MAIN_SCHOOL } from "@/lib/school";
 import { Archive, Award, BarChart3, ClipboardEdit, Database, History, LayoutGrid, School, ShieldCheck, Trophy, UserCircle, Users } from "lucide-react";
 
 const MOET = { label: "Chuẩn Bộ GD", short: "Chuẩn", to: "/chuan-the-luc", icon: Award };
@@ -18,7 +19,11 @@ export const NAV_BY_ROLE = {
   parent: PARENT,
   // Quản trị, Dữ liệu, Nhập liệu, Duyệt, Kho ảnh, Cán bộ: chỉ admin. Cán bộ khác chỉ vào CLB.
   // Điện thoại chỉ hiện 5 mục đầu ở thanh dưới
-  admin: [{ label: "Quản trị", to: "/admin", icon: School }, { label: "Dữ liệu", to: "/admin/du-lieu", icon: Database }, { label: "Nhập liệu", to: "/teacher", icon: ClipboardEdit }, CLUBS, REVIEW, ARCHIVE, STAFF],
+  // Trang MGIS chỉ có Quản trị và Nhập liệu (CLB, kho ảnh, dữ liệu hệ thống, cán bộ chỉ có ở trang Việt Anh)
+  admin: IS_MAIN_SCHOOL
+    ? [{ label: "Quản trị", to: "/admin", icon: School }, { label: "Dữ liệu", to: "/admin/du-lieu", icon: Database }, { label: "Nhập liệu", to: "/teacher", icon: ClipboardEdit }, CLUBS, REVIEW, ARCHIVE, STAFF]
+    : [{ label: "Quản trị", to: "/admin", icon: School }, { label: "Nhập liệu", to: "/teacher", icon: ClipboardEdit }],
+  school_admin: [{ label: "Quản trị", to: "/admin", icon: School }, { label: "Nhập liệu", to: "/teacher", icon: ClipboardEdit }],
   lead: [CLUBS],
   teacher: [CLUBS],
   hr: [CLUBS],

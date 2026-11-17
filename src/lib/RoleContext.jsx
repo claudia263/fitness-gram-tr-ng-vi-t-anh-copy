@@ -1,6 +1,6 @@
 import { createContext, useContext, useMemo } from "react";
 import { useAuth } from "@/lib/AuthContext";
-import { STAFF_ROLES } from "@/lib/clubs/model";
+import { siteRole } from "@/lib/school";
 
 const RoleContext = createContext();
 
@@ -13,7 +13,7 @@ const RoleContext = createContext();
 export function RoleProvider({ children }) {
   const { user } = useAuth();
 
-  const role = useMemo(() => (STAFF_ROLES.includes(user?.role) ? user.role : "parent"), [user?.role]);
+  const role = useMemo(() => siteRole(user) || "parent", [user]);
 
   return <RoleContext.Provider value={{ role }}>{children}</RoleContext.Provider>;
 }
@@ -24,5 +24,5 @@ export function useRole() {
   return ctx;
 }
 
-export const ROLE_HOMES = { parent: "/", admin: "/admin", lead: "/clb", teacher: "/clb", hr: "/clb" };
-export const ROLE_LABELS = { parent: "Phụ huynh", teacher: "Giáo viên", lead: "Tổ trưởng", hr: "Nhân sự", admin: "Quản trị" };
+export const ROLE_HOMES = { parent: "/", admin: "/admin", school_admin: "/admin", lead: "/clb", teacher: "/clb", hr: "/clb" };
+export const ROLE_LABELS = { parent: "Phụ huynh", teacher: "Giáo viên", lead: "Tổ trưởng", hr: "Nhân sự", admin: "Quản trị", school_admin: "Quản trị trường" };

@@ -2,6 +2,8 @@ import { useState, useEffect } from "react";
 import { Link, useLocation } from "react-router-dom";
 import { useAuth } from "@/lib/AuthContext";
 import { ROLE_LABELS, useRole } from "@/lib/RoleContext";
+import { appPath } from "@/lib/school";
+import SchoolSwitch from "@/components/fg/SchoolSwitch";
 import BrandLogo from "@/components/fg/BrandLogo";
 import { LogOut, Menu, X } from "lucide-react";
 import { NAV_BY_ROLE, activeNav } from "@/components/fg/navItems";
@@ -28,7 +30,7 @@ export default function AppHeader() {
     } catch (e) {
       /* vẫn chuyển về trang đăng nhập */
     }
-    window.location.href = "/login";
+    window.location.href = appPath("/login");
   };
 
   const displayName = user?.full_name || user?.email || ROLE_LABELS[role] || "Phụ huynh";
@@ -68,6 +70,7 @@ export default function AppHeader() {
 
           {/* Right: profile */}
           <div className="flex items-center gap-2 sm:gap-3">
+            {role === "admin" && <div className="hidden md:block"><SchoolSwitch /></div>}
             {/* Profile */}
             <Link
               to="/profile"
@@ -109,6 +112,11 @@ export default function AppHeader() {
         {/* Mobile nav drawer */}
         {mobileOpen && (
           <div className="lg:hidden pb-4 pt-2 border-t" style={{ borderColor: "rgba(38,39,93,0.06)" }}>
+            {role === "admin" && (
+              <div className="px-1 pb-3">
+                <SchoolSwitch />
+              </div>
+            )}
             <nav className="flex flex-col gap-1">
               {nav.map((item) => (
                 <Link

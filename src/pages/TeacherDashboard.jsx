@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import CampusTabs from "@/components/fg/CampusTabs";
 import { campusesOf } from "@/lib/campus";
 import { useCampusScope } from "@/lib/campusScope";
+import { inSchool } from "@/lib/school";
 import { base44 } from "@/api/base44Client";
 import { calculateBMI, calculateAgeMonths, nutritionalStatusFromZScore, formatPlankTime } from "@/lib/fitness";
 import { pacerLevelFromLaps, pacerLapsFromLevel, getPacerLevelInfo, pacerDistanceFromLaps } from "@/lib/pacerReference";
@@ -30,9 +31,9 @@ export default function TeacherDashboard() {
           base44.entities.Class.list(null, 50),
           base44.entities.TestSession.list("-test_date", 50),
         ]);
-        // Trang Việt Anh chỉ hiện dữ liệu Việt Anh (Mê Kông Xanh nằm ở trang /mgis)
-        setClasses(cls.filter((c) => (c.school || 'vietanh') === 'vietanh'));
-        setSessions(sess.filter((s) => (s.school || 'vietanh') === 'vietanh'));
+        // Mỗi trang chỉ hiện dữ liệu của trường mình (Việt Anh hoặc MGIS)
+        setClasses(cls.filter(inSchool));
+        setSessions(sess.filter(inSchool));
       } finally {
         setLoading(false);
       }
