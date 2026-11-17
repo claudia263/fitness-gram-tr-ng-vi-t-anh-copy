@@ -12,6 +12,7 @@ import { RoleProvider } from '@/lib/RoleContext';
 import { StudentProvider } from '@/lib/StudentContext';
 import AppLayout from '@/components/fg/AppLayout';
 import Login from '@/pages/Login';
+import Mgis from '@/pages/Mgis';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
@@ -53,6 +54,7 @@ const AuthenticatedApp = () => {
   // Render the main app
   return (
     <Routes>
+      <Route path="/mgis" element={<Mgis />} />
       <Route path="/login" element={<Login />} />
       <Route path="/dang-nhap-can-bo" element={<Login staff />} />
       <Route path="/register" element={<Register />} />
