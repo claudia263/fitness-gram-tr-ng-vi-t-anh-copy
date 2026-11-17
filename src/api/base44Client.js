@@ -98,6 +98,7 @@ const auth = {
     await supabase.auth.signOut();
     sessionStorage.removeItem('fg_entered');
     sessionStorage.removeItem('fg_student_ids');
+    sessionStorage.removeItem('fg_google_login');
     if (redirectUrl) window.location.href = appPath('/login');
   },
   redirectToLogin() {

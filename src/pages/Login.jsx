@@ -9,7 +9,7 @@ import StudentLoginForm from "@/components/fg/StudentLoginForm";
 import { STUDENT_FLAG, fetchPublicSettings, isStudentEmail } from "@/lib/studentAuth";
 import { useAuth } from "@/lib/AuthContext";
 import { ROLE_HOMES } from "@/lib/RoleContext";
-import { SCHOOL, IS_MAIN_SCHOOL, siteRole } from "@/lib/school";
+import { SCHOOL, IS_MAIN_SCHOOL, appPath, siteRole } from "@/lib/school";
 import { USAGE_NOTICE, track } from "@/lib/usage";
 
 export const STAFF_LOGIN_PATH = "/dang-nhap-can-bo";
@@ -24,7 +24,7 @@ export default function Login({ staff = false }) {
   const [error, setError] = useState("");
   const mode = staff ? "staff" : "parent";
   // Đăng nhập email học sinh: bắt buộc khi admin bật (student_login), hoặc phụ huynh tự chọn
-  const { user } = useAuth();
+  const { user, logout } = useAuth();
   const returningStudent = !!(new URLSearchParams(window.location.search).get("hoc-sinh") || sessionStorage.getItem(STUDENT_FLAG) || isStudentEmail(user?.email));
   const [settings, setSettings] = useState(null);
   const [useEmail, setUseEmail] = useState(returningStudent);
@@ -33,12 +33,16 @@ export default function Login({ staff = false }) {
   }, []);
   // Đăng nhập bằng email học sinh chỉ có ở Việt Anh
   const studentLogin = IS_MAIN_SCHOOL && (settings?.student_login || useEmail);
-  // Cán bộ đã đăng nhập (vd giáo viên mở lại app trên điện thoại): vào thẳng trang của vai trò, không dừng ở form phụ huynh
-  if (!staff && user && siteRole(user)) {
-    return <Navigate to={ROLE_HOMES[siteRole(user)] || "/"} replace />;
-  }
+  // Cán bộ đang đăng nhập mở trang phụ huynh: vẫn xem được (không bị đẩy đi), có khung để vào trang làm việc hoặc đăng xuất.
+  // Mở app ở trang gốc "/" thì cán bộ vẫn vào thẳng trang của vai trò mình.
+  // Bấm "Về trang phụ huynh / học sinh" (?phu-huynh=1) thì luôn cho xem trang phụ huynh, kể cả khi đang đăng nhập cán bộ
+  const loginParams = new URLSearchParams(location.search);
+  const wantParent = !!loginParams.get("phu-huynh");
+  // Cờ "vừa bấm đăng nhập Google" chỉ có giá trị trong 10 phút
+  const googleAt = Number(sessionStorage.getItem("fg_google_login"));
+  const googleBack = googleAt > 1e12 && Date.now() - googleAt < 10 * 60 * 1000;
   // Quay lại từ đăng nhập Google / link email của cán bộ (/login?staff=1) → chuyển sang trang cán bộ
-  if (!staff && (new URLSearchParams(location.search).get("staff") || sessionStorage.getItem("fg_google_login"))) {
+  if (!staff && !wantParent && (loginParams.get("staff") || googleBack)) {
     return <Navigate to={{ pathname: STAFF_LOGIN_PATH, search: location.search, hash: location.hash }} replace />;
   }
 
@@ -83,6 +87,32 @@ export default function Login({ staff = false }) {
           subtitle={staff ? "Đăng nhập bằng tài khoản của nhà trường để quản lý dữ liệu thể chất và câu lạc bộ." : undefined}
         >
           <div className="w-full max-w-md mx-auto lg:mx-0">
+            {!staff && user && siteRole(user) && (
+              <div className="mb-3 rounded-2xl bg-white/95 p-4 text-sm text-navy shadow-lg" role="status">
+                <p className="font-semibold">Bạn đang đăng nhập bằng tài khoản cán bộ</p>
+                <p className="mt-0.5 truncate text-muted-foreground">{user.email}</p>
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <a href={appPath(ROLE_HOMES[siteRole(user)] || "/")} className="fg-btn-primary inline-flex h-10 items-center px-4 text-sm">
+                    Vào trang làm việc
+                  </a>
+                  <button
+                    type="button"
+                    onClick={async () => {
+                      sessionStorage.removeItem("fg_google_login");
+                      try {
+                        await logout(false);
+                      } catch (e) {
+                        /* vẫn tải lại trang */
+                      }
+                      window.location.href = appPath("/login");
+                    }}
+                    className="inline-flex h-10 items-center rounded-xl px-4 text-sm font-semibold ring-1 ring-[rgba(38,39,93,0.2)] hover:bg-navy-soft"
+                  >
+                    Đăng xuất
+                  </button>
+                </div>
+              </div>
+            )}
             {mode === "parent" ? (
               IS_MAIN_SCHOOL && !settings && !returningStudent ? (
                 <div className="fg-card h-40 w-full max-w-sm mx-auto fg-skeleton" />
@@ -112,7 +142,12 @@ export default function Login({ staff = false }) {
               {USAGE_NOTICE}
             </p>
             {staff ? (
-              <Link to="/login" className="mt-3 block text-center text-xs font-semibold hover:underline" style={{ color: "rgba(255,255,255,0.8)" }}>
+              <Link
+                to="/login?phu-huynh=1"
+                onClick={() => sessionStorage.removeItem("fg_google_login")}
+                className="mt-3 block text-center text-xs font-semibold hover:underline"
+                style={{ color: "rgba(255,255,255,0.8)" }}
+              >
                 ← Về trang phụ huynh / học sinh
               </Link>
             ) : (

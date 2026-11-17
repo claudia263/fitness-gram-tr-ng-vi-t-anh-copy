@@ -19,8 +19,9 @@ export default function LookupHome() {
   const navigate = useNavigate();
   useTrackView("xem_tong_quan", { studentId: activeStudent?.id, enabled: role === "parent" && !!activeStudent });
 
-  // Cán bộ nhà trường không dùng trang tra cứu của phụ huynh → vào thẳng trang của vai trò mình
-  if (role !== "parent") {
+  // Cán bộ mở trang gốc mà chưa tra học sinh nào → vào thẳng trang của vai trò mình.
+  // Cán bộ đã tra một học sinh (như phụ huynh) thì vẫn xem được kết quả.
+  if (role !== "parent" && !loadingStudents && students.length === 0) {
     return <Navigate to={ROLE_HOMES[role]} replace />;
   }
 

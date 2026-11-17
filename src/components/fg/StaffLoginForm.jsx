@@ -92,7 +92,7 @@ export default function StaffLoginForm() {
 
   const handleGoogle = async () => {
     setError("");
-    sessionStorage.setItem(GOOGLE_FLAG, "1");
+    sessionStorage.setItem(GOOGLE_FLAG, String(Date.now()));
     try {
       // hd: chỉ gợi ý tài khoản Google Workspace của trường
       await base44.auth.loginWithProvider("google", appUrl("/login?staff=1"), SCHOOL.staffDomain ? { hd: SCHOOL_DOMAIN, prompt: "select_account" } : { prompt: "select_account" });

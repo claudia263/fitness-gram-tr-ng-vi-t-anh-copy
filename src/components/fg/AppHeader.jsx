@@ -25,6 +25,7 @@ export default function AppHeader() {
   const handleLogout = async () => {
     sessionStorage.removeItem("fg_entered");
     sessionStorage.removeItem("fg_student_ids");
+    sessionStorage.removeItem("fg_google_login");
     try {
       await logout(false);
     } catch (e) {
