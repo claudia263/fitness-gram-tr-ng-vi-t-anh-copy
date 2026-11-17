@@ -12,9 +12,11 @@ import CampusTabs from "@/components/fg/CampusTabs";
 import { useCampusScope } from "@/lib/campusScope";
 import { LEVELS, levelOfGrade } from "@/lib/clubs/model";
 import { IS_MAIN_SCHOOL, SCHOOL, inSchool } from "@/lib/school";
-import { Users, School, ClipboardList, Plus, Loader2, CheckCircle2, UploadCloud, AlertCircle, FileSpreadsheet, ClipboardCheck, Pencil } from "lucide-react";
+import { useRole } from "@/lib/RoleContext";
+import { UserPlus, Users, School, ClipboardList, Plus, Loader2, CheckCircle2, UploadCloud, AlertCircle, FileSpreadsheet, ClipboardCheck, Pencil } from "lucide-react";
 
 export default function AdminDashboard() {
+  const { role } = useRole();
   const [allStudents, setStudents] = useState([]);
   const [allClasses, setClasses] = useState([]);
   const [allSessions, setSessions] = useState([]);
@@ -82,6 +84,11 @@ export default function AdminDashboard() {
               {SCHOOL.appName} — {SCHOOL.name}{campus ? ` · ${campusLabel(campus)}` : ""}{latestYear ? ` · Năm học ${latestYear}` : ""}
             </p>
           </div>
+          {!IS_MAIN_SCHOOL && role === "admin" && (
+            <Link to="/can-bo" className="fg-btn-secondary ml-auto inline-flex h-10 items-center gap-2 px-4 text-sm">
+              <UserPlus className="w-4 h-4" aria-hidden="true" /> Thêm quản trị viên
+            </Link>
+          )}
         </div>
 
         {!loading && <CampusTabs campuses={campuses} value={campus} onChange={setCampus} />}

@@ -22,7 +22,7 @@ export const NAV_BY_ROLE = {
   // Trang MGIS chỉ có Quản trị và Nhập liệu (CLB, kho ảnh, dữ liệu hệ thống, cán bộ chỉ có ở trang Việt Anh)
   admin: IS_MAIN_SCHOOL
     ? [{ label: "Quản trị", to: "/admin", icon: School }, { label: "Dữ liệu", to: "/admin/du-lieu", icon: Database }, { label: "Nhập liệu", to: "/teacher", icon: ClipboardEdit }, CLUBS, REVIEW, ARCHIVE, STAFF]
-    : [{ label: "Quản trị", to: "/admin", icon: School }, { label: "Nhập liệu", to: "/teacher", icon: ClipboardEdit }],
+    : [{ label: "Quản trị", to: "/admin", icon: School }, { label: "Nhập liệu", to: "/teacher", icon: ClipboardEdit }, STAFF],
   school_admin: [{ label: "Quản trị", to: "/admin", icon: School }, { label: "Nhập liệu", to: "/teacher", icon: ClipboardEdit }],
   lead: [CLUBS],
   teacher: [CLUBS],

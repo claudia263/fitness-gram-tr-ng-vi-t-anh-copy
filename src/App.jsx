@@ -29,6 +29,7 @@ import ClubDetail from '@/pages/ClubDetail';
 import EvidenceArchive from '@/pages/EvidenceArchive';
 import EvidenceReview from '@/pages/EvidenceReview';
 import Staff from '@/pages/Staff';
+import SchoolStaff from '@/pages/SchoolStaff';
 import MoetStandards from '@/pages/MoetStandards';
 import { STAFF_ROLES } from '@/lib/clubs/model';
 import { startUsageClock } from '@/lib/usage';
@@ -69,7 +70,9 @@ const AuthenticatedApp = () => {
           <Route path="/chuan-the-luc" element={<MoetStandards />} />
           <Route path="/teacher" element={<AdminRoute roles={["admin", "school_admin"]}><TeacherDashboard /></AdminRoute>} />
           <Route path="/admin" element={<AdminRoute roles={["admin", "school_admin"]}><AdminDashboard /></AdminRoute>} />
-          {/* CLB, kho ảnh, dữ liệu hệ thống và quản lý cán bộ chỉ có ở trang Việt Anh */}
+          {/* Trang MGIS: chủ hệ thống thêm / gỡ quản trị viên của trường */}
+          {!IS_MAIN_SCHOOL && <Route path="/can-bo" element={<AdminRoute><SchoolStaff /></AdminRoute>} />}
+          {/* CLB, kho ảnh, dữ liệu hệ thống và quản lý cán bộ (có CLB) chỉ có ở trang Việt Anh */}
           {IS_MAIN_SCHOOL && (
             <>
               <Route path="/admin/du-lieu" element={<AdminRoute><AdminData /></AdminRoute>} />
