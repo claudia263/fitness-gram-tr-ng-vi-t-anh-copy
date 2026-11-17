@@ -8,12 +8,15 @@ import StudentEmailPanel from "@/components/fg/StudentEmailPanel";
 import ExportStudentsPanel from "@/components/fg/ExportStudentsPanel";
 import { track, useTrackView } from "@/lib/usage";
 import { campusLabel, campusesOf, sessionDateRange } from "@/lib/campus";
+import CampusTabs from "@/components/fg/CampusTabs";
+import { useCampusScope } from "@/lib/campusScope";
+import { LEVELS, levelOfGrade } from "@/lib/clubs/model";
 import { Users, School, ClipboardList, Plus, Loader2, CheckCircle2, UploadCloud, AlertCircle, FileSpreadsheet, ClipboardCheck, Pencil } from "lucide-react";
 
 export default function AdminDashboard() {
-  const [students, setStudents] = useState([]);
-  const [classes, setClasses] = useState([]);
-  const [sessions, setSessions] = useState([]);
+  const [allStudents, setStudents] = useState([]);
+  const [allClasses, setClasses] = useState([]);
+  const [allSessions, setSessions] = useState([]);
   const [measured, setMeasured] = useState({}); // session_id → Set(student_id) đã có kết quả
   const [loading, setLoading] = useState(true);
   useTrackView("xem_quan_tri");
@@ -39,7 +42,13 @@ export default function AdminDashboard() {
 
   useEffect(() => { loadAll(); }, []);
 
-  const campuses = useMemo(() => campusesOf(students, classes, sessions), [students, classes, sessions]);
+  const campuses = useMemo(() => campusesOf(allStudents, allClasses, allSessions), [allStudents, allClasses, allSessions]);
+  // Mỗi lần chỉ xem một cơ sở: mọi số liệu, danh sách và đợt đo bên dưới đều theo cơ sở đang chọn
+  const [campus, setCampus] = useCampusScope(campuses);
+  const scoped = campus ? [campus] : [];
+  const students = useMemo(() => allStudents.filter((s) => s.campus === campus), [allStudents, campus]);
+  const classes = useMemo(() => allClasses.filter((c) => c.campus === campus), [allClasses, campus]);
+  const sessions = useMemo(() => allSessions.filter((s) => s.campus === campus), [allSessions, campus]);
   const latestYear = useMemo(() => [...new Set(sessions.map((s) => s.school_year))].sort().pop() || null, [sessions]);
 
   // Gom đợt: (năm học, đợt số) → các lần đo của từng cơ sở
@@ -55,7 +64,7 @@ export default function AdminDashboard() {
   const yearRounds = rounds.filter((r) => r.school_year === latestYear);
   const latestRound = yearRounds[0] || null;
 
-  const byCampus = (list) => campuses.map((c) => ({ label: campusLabel(c), value: list.filter((x) => x.campus === c).length }));
+  const byLevel = (list) => LEVELS.map((l) => ({ label: l.label, value: list.filter((x) => levelOfGrade(x.grade) === l.key).length })).filter((l) => l.value > 0);
   const measuredInRound = (round, campus) =>
     round ? round.sessions.filter((s) => !campus || s.campus === campus).reduce((n, s) => n + (measured[s.id]?.size || 0), 0) : 0;
 
@@ -69,10 +78,12 @@ export default function AdminDashboard() {
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-navy">Admin</h1>
             <p className="text-sm text-muted-foreground">
-              Tổng quan hệ thống Fitness Gram — Trường Việt Anh · {campuses.length} cơ sở{latestYear ? ` · Năm học ${latestYear}` : ""}
+              Fitness Gram — Trường Việt Anh{campus ? ` · ${campusLabel(campus)}` : ""}{latestYear ? ` · Năm học ${latestYear}` : ""}
             </p>
           </div>
         </div>
+
+        {!loading && <CampusTabs campuses={campuses} value={campus} onChange={setCampus} />}
 
         {loading ? (
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
@@ -82,13 +93,13 @@ export default function AdminDashboard() {
           <>
             {/* Tổng toàn hệ thống, chia theo cơ sở */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
-              <StatCard icon={Users} label="Học sinh toàn hệ thống" value={students.length} lines={byCampus(students)} onClick={() => setExplorer("students")} clickable />
-              <StatCard icon={School} label="Lớp học" value={classes.length} lines={byCampus(classes)} onClick={() => setExplorer("classes")} clickable />
+              <StatCard icon={Users} label="Học sinh" value={students.length} lines={byLevel(students)} onClick={() => setExplorer("students")} clickable />
+              <StatCard icon={School} label="Lớp học" value={classes.length} lines={byLevel(classes)} onClick={() => setExplorer("classes")} clickable />
               <StatCard
                 icon={ClipboardList}
                 label={`Đợt kiểm tra${latestYear ? ` · ${latestYear}` : ""}`}
                 value={`${yearRounds.length} đợt`}
-                lines={campuses.map((c) => {
+                lines={scoped.map((c) => {
                   const s = latestRound?.sessions.find((x) => x.campus === c);
                   return { label: campusLabel(c), value: s ? `Đợt ${latestRound.round_no ?? "?"} · ${sessionDateRange(s)}` : "Chưa đo" };
                 })}
@@ -97,13 +108,13 @@ export default function AdminDashboard() {
                 icon={ClipboardCheck}
                 label={latestRound ? `Đã có kết quả · Đợt ${latestRound.round_no ?? "?"}` : "Đã có kết quả"}
                 value={`${measuredInRound(latestRound)}/${students.length}`}
-                lines={campuses.map((c) => ({ label: campusLabel(c), value: `${measuredInRound(latestRound, c)}/${students.filter((x) => x.campus === c).length}` }))}
+                lines={scoped.map((c) => ({ label: campusLabel(c), value: `${measuredInRound(latestRound, c)}/${students.filter((x) => x.campus === c).length}` }))}
               />
             </div>
 
             <StudentEmailPanel students={students} classes={classes} onSaved={loadAll} />
 
-            <ExportStudentsPanel students={students} classes={classes} sessions={sessions} campuses={campuses} />
+            <ExportStudentsPanel students={allStudents} classes={allClasses} sessions={allSessions} campuses={campuses} />
 
             {/* Đợt kiểm tra: mỗi đợt chung của năm học, chia theo cơ sở */}
             <div className="fg-card p-5 sm:p-6 mb-6">
@@ -116,20 +127,20 @@ export default function AdminDashboard() {
                   <Plus className="w-4 h-4" /> Tạo đợt / nhập dữ liệu cơ sở
                 </button>
               </div>
-              {showSessionForm && <SessionForm campuses={campuses} sessions={sessions} latestYear={latestYear} onCreated={() => { setShowSessionForm(false); loadAll(); }} />}
+              {showSessionForm && <SessionForm campuses={campuses} sessions={allSessions} latestYear={latestYear} onCreated={() => { setShowSessionForm(false); loadAll(); }} />}
               {rounds.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Chưa có đợt kiểm tra nào.</p>
               ) : (
                 <div className="space-y-4">
                   {rounds.map((r) => {
-                    const done = campuses.filter((c) => r.sessions.some((s) => s.campus === c));
+                    const done = scoped.filter((c) => r.sessions.some((s) => s.campus === c));
                     return (
                       <div key={r.key} className="rounded-2xl p-4" style={{ background: "#F7F8FC" }}>
                         <div className="flex flex-wrap items-baseline justify-between gap-2 mb-3">
                           <div className="font-bold text-navy">
                             {r.round_no ? `Đợt ${r.round_no}` : "Chưa xếp đợt"} <span className="font-medium text-muted-foreground text-sm">· {r.semester} · Năm học {r.school_year}</span>
                           </div>
-                          <span className="text-xs font-semibold text-navy">{done.length}/{campuses.length} cơ sở đã đo</span>
+                          <span className="text-xs font-semibold text-navy">{done.length ? "Đã đo" : "Chưa đo"}</span>
                         </div>
                         <div className="space-y-2">
                           {r.sessions.map((s) => (
@@ -147,7 +158,7 @@ export default function AdminDashboard() {
                               </div>
                             </div>
                           ))}
-                          {campuses.filter((c) => !done.includes(c)).map((c) => (
+                          {scoped.filter((c) => !done.includes(c)).map((c) => (
                             <div key={c} className="rounded-xl px-4 py-2.5 text-sm text-muted-foreground" style={{ border: "1px dashed rgba(38,39,93,0.18)" }}>
                               {campusLabel(c)} — chưa đo đợt này
                             </div>

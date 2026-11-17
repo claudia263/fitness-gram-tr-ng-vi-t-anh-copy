@@ -1,4 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import CampusTabs from "@/components/fg/CampusTabs";
+import { campusesOf } from "@/lib/campus";
+import { useCampusScope } from "@/lib/campusScope";
 import { base44 } from "@/api/base44Client";
 import { calculateBMI, calculateAgeMonths, nutritionalStatusFromZScore, formatPlankTime } from "@/lib/fitness";
 import { pacerLevelFromLaps, pacerLapsFromLevel, getPacerLevelInfo, pacerDistanceFromLaps } from "@/lib/pacerReference";
@@ -12,9 +15,9 @@ import { Save, Loader2, CheckCircle2, AlertCircle, ClipboardList, Users, Calenda
 
 export default function TeacherDashboard() {
   const [tab, setTab] = useState("input");
-  const [classes, setClasses] = useState([]);
+  const [allClasses, setClasses] = useState([]);
   const [students, setStudents] = useState([]);
-  const [sessions, setSessions] = useState([]);
+  const [allSessions, setSessions] = useState([]);
   const [selectedClass, setSelectedClass] = useState("");
   const [selectedStudent, setSelectedStudent] = useState("");
   const [selectedSession, setSelectedSession] = useState("");
@@ -29,16 +32,28 @@ export default function TeacherDashboard() {
         ]);
         setClasses(cls);
         setSessions(sess);
-        if (cls.length) setSelectedClass(cls[0].id);
-        if (sess.length) setSelectedSession(sess[0].id);
       } finally {
         setLoading(false);
       }
     })();
   }, []);
 
+  // Mỗi lần chỉ làm việc với một cơ sở: lớp và đợt kiểm tra theo cơ sở đang chọn
+  const campuses = useMemo(() => campusesOf(allClasses, allSessions), [allClasses, allSessions]);
+  const [campus, setCampus] = useCampusScope(campuses);
+  const classes = useMemo(() => allClasses.filter((c) => !campus || c.campus === campus), [allClasses, campus]);
+  const sessions = useMemo(() => allSessions.filter((s) => !campus || s.campus === campus), [allSessions, campus]);
   useEffect(() => {
-    if (!selectedClass) return;
+    setSelectedClass(classes[0]?.id || "");
+    setSelectedSession(sessions[0]?.id || "");
+  }, [campus, allClasses, allSessions]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  useEffect(() => {
+    if (!selectedClass) {
+      setStudents([]);
+      setSelectedStudent("");
+      return;
+    }
     (async () => {
       const studs = await base44.entities.Student.filter({ class_id: selectedClass }, null, 100);
       setStudents(studs);
@@ -67,6 +82,8 @@ export default function TeacherDashboard() {
             <p className="text-sm text-muted-foreground">Nhập và quản lý kết quả kiểm tra thể chất</p>
           </div>
         </div>
+
+        <CampusTabs campuses={campuses} value={campus} onChange={setCampus} />
 
         {/* Tabs */}
         <div className="flex gap-2 mb-6 overflow-x-auto pb-1">
