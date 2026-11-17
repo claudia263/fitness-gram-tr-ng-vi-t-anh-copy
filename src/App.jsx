@@ -92,7 +92,7 @@ const AuthenticatedApp = () => {
 function App() {
   useEffect(() => startUsageClock(), []);
   useEffect(() => {
-    if (!IS_MAIN_SCHOOL) document.title = `Fitness Gram – ${SCHOOL.name}`;
+    if (!IS_MAIN_SCHOOL) document.title = `${SCHOOL.appName} – ${SCHOOL.name}`;
   }, []);
 
   return (

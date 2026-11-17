@@ -79,7 +79,7 @@ export default function AdminDashboard() {
           <div>
             <h1 className="text-2xl sm:text-3xl font-extrabold text-navy">Admin</h1>
             <p className="text-sm text-muted-foreground">
-              Fitness Gram — {SCHOOL.name}{campus ? ` · ${campusLabel(campus)}` : ""}{latestYear ? ` · Năm học ${latestYear}` : ""}
+              {SCHOOL.appName} — {SCHOOL.name}{campus ? ` · ${campusLabel(campus)}` : ""}{latestYear ? ` · Năm học ${latestYear}` : ""}
             </p>
           </div>
         </div>

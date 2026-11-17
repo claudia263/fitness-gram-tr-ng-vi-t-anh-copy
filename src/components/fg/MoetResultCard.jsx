@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Award, ChevronRight, TriangleAlert } from "lucide-react";
 import { MOET_LEVELS, evaluateMoet, formatThreshold, hasMoetData } from "@/lib/moetNorms";
 import { MOET_RISK_KEY, healthRisk } from "@/lib/healthRisk";
+import MoetRadar from "@/components/fg/MoetRadar";
 
 const LEVEL_CLS = {
   tot: "bg-emerald-100 text-emerald-800",
@@ -22,6 +23,7 @@ export default function MoetResultCard({ student, fitnessRows }) {
   const latest = rows[rows.length - 1];
   const ev = latest ? evaluateMoet({ sex: student.sex, birthDate: student.birth_date, testDate: latest.session?.test_date, result: latest }) : null;
   const shown = ev ? ev.tests.filter((t) => t.chosen || t.value != null) : [];
+  const radarOk = !!ev && ev.age != null && ev.tests.some((t) => t.value != null && t.threshold);
   // "Nếu không thay đổi" cho các năng lực có bài Chưa đạt (gộp bài cùng năng lực)
   const failed = shown.filter((t) => t.level === "chua_dat");
   const riskKeys = [...new Set(failed.map((t) => MOET_RISK_KEY[t.key]))];
@@ -57,7 +59,8 @@ export default function MoetResultCard({ student, fitnessRows }) {
           Chưa có kết quả các bài kiểm tra của Bộ GD&ĐT (bật xa tại chỗ, chạy tuỳ sức 5 phút, nằm ngửa gập bụng, chạy 30m).
         </p>
       ) : (
-        <ul className="grid gap-3 sm:grid-cols-2">
+        <div className="grid gap-5 lg:grid-cols-[minmax(0,1fr)_340px]">
+        <ul className="grid content-start gap-3 sm:grid-cols-2">
           {shown.map((t) => (
             <li key={t.key} className="rounded-xl p-3" style={{ background: "#F7F8FC" }}>
               <div className="flex items-start justify-between gap-2">
@@ -82,6 +85,8 @@ export default function MoetResultCard({ student, fitnessRows }) {
             </li>
           ))}
         </ul>
+        {radarOk && <MoetRadar ev={ev} />}
+        </div>
       )}
 
       {risks.length > 0 && (

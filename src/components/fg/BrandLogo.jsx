@@ -24,7 +24,7 @@ export default function BrandLogo({ size = 40, variant = "dark", subtitle = true
             </div>
           )}
           <div className="font-medium" style={{ color: variant === "light" ? "rgba(255,255,255,0.7)" : "#6B6E8F", fontSize: size * 0.26 }}>
-            FITNESS GRAM
+            {SCHOOL.appName.toUpperCase()}
           </div>
         </div>
       </div>

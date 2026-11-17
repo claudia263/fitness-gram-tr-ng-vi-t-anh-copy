@@ -10,6 +10,7 @@ import SkeletonCard from "@/components/fg/SkeletonCard";
 import FitnessDetailModal from "@/components/fg/FitnessDetailModal";
 import MoetResultCard from "@/components/fg/MoetResultCard";
 import MoetHistory from "@/components/fg/MoetHistory";
+import { SCHOOL } from "@/lib/school";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
 
 const TESTS = [
@@ -25,8 +26,8 @@ export default function Results() {
   const [openTest, setOpenTest] = useState(null);
 
   const fitnessRows = data?.fitnessRows || [];
-  const hasFG = TESTS.some((t) => fitnessRows.some((r) => r[t.field] != null));
-  const anthroRows = (data?.anthroRows || []).map((a) => enrichAnthro(a, activeStudent?.birth_date, activeStudent?.sex));
+  const hasFG = SCHOOL.fitnessgram && TESTS.some((t) => fitnessRows.some((r) => r[t.field] != null));
+  const anthroRows = (SCHOOL.fitnessgram ? data?.anthroRows || [] : []).map((a) => enrichAnthro(a, activeStudent?.birth_date, activeStudent?.sex));
 
   if (loadingStudents || loading) {
     return (
@@ -47,8 +48,8 @@ export default function Results() {
   return (
     <PageTransition>
       <div className="mx-auto max-w-[1280px] px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-navy mb-1">Kết quả Fitness Gram</h1>
-        <p className="text-sm text-muted-foreground mb-6">Xu hướng từng bài kiểm tra theo từng học kỳ</p>
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-navy mb-1">{SCHOOL.fitnessgram ? "Kết quả Fitness Gram" : "Kết quả kiểm tra thể lực"}</h1>
+        <p className="text-sm text-muted-foreground mb-6">{SCHOOL.fitnessgram ? "Xu hướng từng bài kiểm tra theo từng học kỳ" : "Theo chuẩn Bộ GD&ĐT (Quyết định 53/2008)"}</p>
 
         <StudentProfileCard student={activeStudent} className="mb-6" />
 

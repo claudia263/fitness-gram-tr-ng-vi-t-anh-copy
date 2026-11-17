@@ -17,6 +17,7 @@ import MoetHistory from "@/components/fg/MoetHistory";
 import { hasMoetData } from "@/lib/moetNorms";
 import { Calendar } from "lucide-react";
 import { sessionDateRange } from "@/lib/campus";
+import { SCHOOL } from "@/lib/school";
 
 // Hiển thị toàn bộ kết quả thể chất của một học sinh (fitness + growth + nhận xét + lịch sử)
 export default function StudentResultsView({ student, onNameClick }) {
@@ -40,13 +41,13 @@ export default function StudentResultsView({ student, onNameClick }) {
     .sort((a, b) => new Date(b.test_date) - new Date(a.test_date));
 
   const latestFitness = fitnessRows.length ? fitnessRows[fitnessRows.length - 1] : null;
-  const latestAnthro = anthroRows.length ? enrichAnthro(anthroRows[anthroRows.length - 1], student?.birth_date, student?.sex) : null;
+  const latestAnthro = SCHOOL.fitnessgram && anthroRows.length ? enrichAnthro(anthroRows[anthroRows.length - 1], student?.birth_date, student?.sex) : null;
   const prevFitness = fitnessRows.length > 1 ? fitnessRows[fitnessRows.length - 2] : null;
 
   const latestSession = latestFitness?.session || latestAnthro?.session;
   const comment = latestSession ? comments[latestSession.id] : null;
 
-  const hasFitnessData = latestFitness && (
+  const hasFitnessData = SCHOOL.fitnessgram && latestFitness && (
     latestFitness.pacer_laps != null || latestFitness.pacer_level != null ||
     latestFitness.sit_and_reach_cm != null || latestFitness.pushup_count != null ||
     latestFitness.plank_seconds != null
@@ -56,9 +57,11 @@ export default function StudentResultsView({ student, onNameClick }) {
 
   return (
     <div className="mt-6">
-      <div className="flex justify-end mb-3">
-        <ExportResultsButton student={student} data={data} />
-      </div>
+      {SCHOOL.fitnessgram && (
+        <div className="flex justify-end mb-3">
+          <ExportResultsButton student={student} data={data} />
+        </div>
+      )}
       <StudentProfileCard student={student} className="mb-6" onNameClick={onNameClick} />
 
       {latestSession && (
@@ -158,7 +161,7 @@ export default function StudentResultsView({ student, onNameClick }) {
                     <div className="text-sm font-semibold text-navy">{s.name || "Đợt kiểm tra"}</div>
                     <div className="text-xs text-muted-foreground">{sessionDateRange(s)}</div>
                   </div>
-                  {r && hasMoetData(r) && r.pacer_level == null && r.sit_and_reach_cm == null && r.pushup_count == null && r.plank_seconds == null ? (
+                  {r && hasMoetData(r) && (!SCHOOL.fitnessgram || (r.pacer_level == null && r.sit_and_reach_cm == null && r.pushup_count == null && r.plank_seconds == null)) ? (
                     <span className="text-xs text-muted-foreground">Chuẩn Bộ GD&ĐT · đã có kết quả</span>
                   ) : r ? (
                     <div className="flex flex-wrap gap-x-4 gap-y-1 justify-end text-xs text-muted-foreground">

@@ -6,6 +6,9 @@ import { formatPlankTime, formatAge } from "@/lib/fitness";
 import PageTransition from "@/components/fg/PageTransition";
 import EmptyState from "@/components/fg/EmptyState";
 import { Filter, Calendar } from "lucide-react";
+import { MOET_TESTS, evaluateMoet, hasMoetData } from "@/lib/moetNorms";
+import { LevelPill } from "@/components/fg/MoetResultCard";
+import { SCHOOL } from "@/lib/school";
 
 export default function History() {
   const { activeStudent, loadingStudents, data, loading } = useStudent();
@@ -13,8 +16,8 @@ export default function History() {
   const [semester, setSemester] = useState("all");
   const [schoolYear, setSchoolYear] = useState("all");
 
-  const fitnessRows = data?.fitnessRows || [];
-  const anthroRows = (data?.anthroRows || []).map((a) => enrichAnthro(a, activeStudent?.birth_date, activeStudent?.sex));
+  const fitnessRows = (data?.fitnessRows || []).filter((r) => SCHOOL.fitnessgram || hasMoetData(r));
+  const anthroRows = (SCHOOL.fitnessgram ? data?.anthroRows || [] : []).map((a) => enrichAnthro(a, activeStudent?.birth_date, activeStudent?.sex));
   const comments = data?.commentBySession || {};
 
   const schoolYears = useMemo(() => {
@@ -77,7 +80,10 @@ export default function History() {
             {/* timeline line */}
             <div className="absolute left-4 top-2 bottom-2 w-0.5" style={{ background: "rgba(38,39,93,0.10)" }} />
             <div className="space-y-4">
-              {filtered.map((entry, idx) => (
+              {filtered.map((entry, idx) => {
+                const moetEv = entry.fitness && hasMoetData(entry.fitness) ? evaluateMoet({ sex: activeStudent?.sex, birthDate: activeStudent?.birth_date, testDate: entry.session?.test_date, result: entry.fitness }) : null;
+                const hasFG = entry.fitness && [entry.fitness.pacer_level, entry.fitness.sit_and_reach_cm, entry.fitness.pushup_count, entry.fitness.plank_seconds].some((v) => v != null);
+                return (
                 <div key={idx} className="relative pl-12">
                   <div
                     className="absolute left-2 top-5 w-5 h-5 rounded-full flex items-center justify-center"
@@ -92,9 +98,17 @@ export default function History() {
                           {formatDate(entry.session?.test_date)} · {entry.session?.semester} · {entry.session?.school_year}
                         </div>
                       </div>
+                      {moetEv?.overall && <LevelPill level={moetEv.overall} large />}
                     </div>
 
-                    {entry.fitness && (
+                    {moetEv && (
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 mb-4">
+                        {MOET_TESTS.filter((t) => entry.fitness[t.field] != null).map((t) => (
+                          <HistoryMetric key={t.key} label={t.label} value={entry.fitness[t.field]} unit={t.unit} />
+                        ))}
+                      </div>
+                    )}
+                    {SCHOOL.fitnessgram && hasFG && (
                       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-4">
                         <HistoryMetric label="PACER" value={entry.fitness.pacer_level} unit="level" />
                         <HistoryMetric label="Sit & Reach" value={entry.fitness.sit_and_reach_cm} unit="cm" />
@@ -117,7 +131,8 @@ export default function History() {
                     )}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           </div>
         )}

@@ -14,6 +14,8 @@ export const SCHOOLS = {
     defaultCampus: "",
     staffDomain: "truongvietanh.com",
     tagline: "Hành trình khỏe mạnh – Tương lai vững vàng",
+    appName: "Fitness Gram",
+    fitnessgram: true, // có chương trình Fitness Gram (PACER, Sit & Reach, Push-up, Plank, thể trạng)
     color: "#26275D",
   },
   mgis: {
@@ -23,6 +25,8 @@ export const SCHOOLS = {
     defaultCampus: "MGIS",
     staffDomain: "",
     tagline: "Theo dõi phát triển thể chất học sinh",
+    appName: "Kiểm tra thể lực QĐ 53",
+    fitnessgram: false, // chỉ 6 bài test theo QĐ 53/2008 của Bộ GD&ĐT
     // Màu tạm, thay bằng nhận diện chính thức của MGIS khi có
     color: "#0E5A43",
   },

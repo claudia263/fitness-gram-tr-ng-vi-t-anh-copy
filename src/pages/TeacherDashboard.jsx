@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from "react";
 import CampusTabs from "@/components/fg/CampusTabs";
 import { campusesOf } from "@/lib/campus";
 import { useCampusScope } from "@/lib/campusScope";
-import { inSchool } from "@/lib/school";
+import { SCHOOL, inSchool } from "@/lib/school";
 import { base44 } from "@/api/base44Client";
 import { calculateBMI, calculateAgeMonths, nutritionalStatusFromZScore, formatPlankTime } from "@/lib/fitness";
 import { pacerLevelFromLaps, pacerLapsFromLevel, getPacerLevelInfo, pacerDistanceFromLaps } from "@/lib/pacerReference";
@@ -63,7 +63,7 @@ export default function TeacherDashboard() {
     })();
   }, [selectedClass]);
 
-  const tabs = [
+  const allTabs = [
     { key: "input", label: "Nhập kết quả", icon: ClipboardList },
     { key: "students", label: "Học sinh", icon: Users },
     { key: "sessions", label: "Đợt kiểm tra", icon: Calendar },
@@ -71,6 +71,9 @@ export default function TeacherDashboard() {
     { key: "norms", label: "So sánh chuẩn toàn trường", icon: Target },
     { key: "moet", label: "Chuẩn Bộ GD&ĐT", icon: Award },
   ];
+
+  // MGIS chỉ làm 6 bài theo QĐ 53: bỏ tab so sánh chuẩn Fitness Gram toàn trường
+  const tabs = SCHOOL.fitnessgram ? allTabs : allTabs.filter((t) => t.key !== "norms");
 
   return (
     <PageTransition>
@@ -280,12 +283,16 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
       const fitnessData = {
         student_id: selectedStudent,
         session_id: selectedSession,
-        pacer_laps: toNum(form.pacer_laps),
-        pacer_level: toNum(form.pacer_level),
-        pacer_type: form.pacer_type || defaultPacerType(student?.grade),
-        sit_and_reach_cm: toNum(form.sit_and_reach_cm),
-        pushup_count: toNum(form.pushup_count),
-        plank_seconds: toNum(form.plank_seconds),
+        ...(SCHOOL.fitnessgram
+          ? {
+              pacer_laps: toNum(form.pacer_laps),
+              pacer_level: toNum(form.pacer_level),
+              pacer_type: form.pacer_type || defaultPacerType(student?.grade),
+              sit_and_reach_cm: toNum(form.sit_and_reach_cm),
+              pushup_count: toNum(form.pushup_count),
+              plank_seconds: toNum(form.plank_seconds),
+            }
+          : {}),
         ...Object.fromEntries(MOET_TESTS.map((t) => [t.field, toNum(form[t.field])])),
         teacher_id: "",
       };
@@ -413,6 +420,7 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
             </div>
           )}
 
+          {SCHOOL.fitnessgram && (
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             <NumField label="Lượt" value={form.pacer_laps} onChange={(v) => { set("pacer_laps", v); set("pacer_level", String(pacerLevelFromLaps(v))); }} error={errors.pacer_laps} hint={form.pacer_laps ? `≈ ${pacerDistanceFromLaps(form.pacer_laps)} m` : null} />
             <div className="flex flex-col gap-1">
@@ -454,12 +462,13 @@ function InputForm({ classes, students, sessions, selectedClass, setSelectedClas
               </div>
             </div>
           </div>
+          )}
 
           <MoetFields form={form} set={set} errors={errors} student={student} testDate={sessions.find((x) => x.id === selectedSession)?.test_date} />
 
           <div className="mt-5 space-y-4">
             <TextField label="Nhận xét thể lực" value={form.fitness_comment} onChange={(v) => set("fitness_comment", v)} placeholder="VD: Học sinh có tiến bộ về sức bền..." />
-            <TextField label="Nhận xét thể trạng" value={form.growth_comment} onChange={(v) => set("growth_comment", v)} placeholder="VD: Chiều cao phát triển ổn định..." />
+            {SCHOOL.fitnessgram && <TextField label="Nhận xét thể trạng" value={form.growth_comment} onChange={(v) => set("growth_comment", v)} placeholder="VD: Chiều cao phát triển ổn định..." />}
             <TextField label="Khuyến nghị" value={form.recommendation} onChange={(v) => set("recommendation", v)} placeholder="VD: Tăng cường tập linh hoạt..." />
           </div>
 
