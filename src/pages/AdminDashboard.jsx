@@ -128,7 +128,7 @@ export default function AdminDashboard() {
                   <Plus className="w-4 h-4" /> Tạo đợt / nhập dữ liệu cơ sở
                 </button>
               </div>
-              {showSessionForm && <SessionForm campuses={campuses} sessions={allSessions} latestYear={latestYear} onCreated={() => { setShowSessionForm(false); loadAll(); }} />}
+              {showSessionForm && <SessionForm campuses={campuses} sessions={allSessions} latestYear={latestYear} onRefresh={loadAll} onCreated={() => { setShowSessionForm(false); loadAll(); }} />}
               {rounds.length === 0 ? (
                 <p className="text-sm text-muted-foreground">Chưa có đợt kiểm tra nào.</p>
               ) : (
@@ -201,12 +201,13 @@ function suggestRound(sessions, year, campus) {
   return inYear.some((s) => s.round_no === max && s.campus === campus) ? max + 1 : max;
 }
 
-function SessionForm({ campuses, sessions, latestYear, onCreated }) {
+function SessionForm({ campuses, sessions, latestYear, onCreated, onRefresh }) {
   const year0 = latestYear || "2026–2027";
   const [form, setForm] = useState(() => ({ name: "", test_date: "", end_date: "", semester: "Học kỳ I", school_year: year0, campus: campuses[0] || SCHOOL.defaultCampus, round_no: String(suggestRound(sessions, year0, campuses[0] || SCHOOL.defaultCampus)), notes: "" }));
   const [customCampus, setCustomCampus] = useState(campuses.length === 0);
   const setCampus = (campus) => setForm((f) => ({ ...f, campus, round_no: String(suggestRound(sessions, f.school_year, campus)) }));
-  const [file, setFile] = useState(null);
+  const [files, setFiles] = useState([]);
+  const [progress, setProgress] = useState("");
   const [busy, setBusy] = useState(false);
   const [done, setDone] = useState(null);
   const [error, setError] = useState("");
@@ -215,30 +216,47 @@ function SessionForm({ campuses, sessions, latestYear, onCreated }) {
   const canCreate = form.name && form.test_date && form.campus.trim() && (!form.end_date || form.end_date >= form.test_date);
   const sessionMeta = { campus: form.campus.trim(), round_no: form.round_no ? Number(form.round_no) : null, end_date: form.end_date || null };
 
+  // Nhập nhiều file một lúc: lần lượt từng file vào cùng một đợt; file nào lỗi thì báo, các file còn lại vẫn nhập
   const runImport = async () => {
-    if (!canCreate || !file) return;
+    if (!canCreate || !files.length) return;
     setBusy(true);
     setError("");
     setDone(null);
-    try {
-      const res = await importFitnessExcel(file, {
-        ...sessionMeta,
-        school: SCHOOL.id,
-        school_year: form.school_year,
-        session_name: form.name,
-        test_date: form.test_date,
-        semester: form.semester,
-        notes: form.notes || "Import tự động từ file Excel",
-      }, base44.entities);
-      setDone(res);
-      track("nhap_excel_the_luc", { soLan: Math.max(1, (res?.fitness || 0) + (res?.anthropometric || 0)), chiTiet: { dot: form.name, hoc_sinh: res?.students } });
-      setTimeout(() => onCreated(), 1200);
-    } catch (err) {
-      setError(err?.message || "Không thể nhập dữ liệu.");
-    } finally {
-      setBusy(false);
-      if (inputRef.current) inputRef.current.value = "";
-      setFile(null);
+    const total = { students: 0, fitness: 0, anthropometric: 0, skipped: 0, perFile: [], warnings: [], failed: [] };
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      setProgress(`(${i + 1}/${files.length}: ${file.name})`);
+      try {
+        const res = await importFitnessExcel(file, {
+          ...sessionMeta,
+          school: SCHOOL.id,
+          school_year: form.school_year,
+          session_name: form.name,
+          test_date: form.test_date,
+          semester: form.semester,
+          notes: form.notes || "Import tự động từ file Excel",
+        }, base44.entities);
+        total.students += res?.students || 0;
+        total.fitness += res?.fitness || 0;
+        total.anthropometric += res?.anthropometric || 0;
+        total.skipped += res?.skipped || 0;
+        total.warnings.push(...(res?.warnings || []));
+        total.perFile.push({ name: file.name, students: res?.students || 0 });
+        track("nhap_excel_the_luc", { soLan: Math.max(1, (res?.fitness || 0) + (res?.anthropometric || 0)), chiTiet: { dot: form.name, hoc_sinh: res?.students } });
+      } catch (err) {
+        total.failed.push({ name: file.name, message: err?.message || "Không nhập được" });
+      }
+    }
+    setProgress("");
+    setBusy(false);
+    if (inputRef.current) inputRef.current.value = "";
+    setFiles([]);
+    if (total.perFile.length) {
+      setDone(total);
+      if (!total.failed.length) setTimeout(() => onCreated(), 1500);
+      else onRefresh?.();
+    } else {
+      setError(total.failed.map((x) => `${x.name}: ${x.message}`).join(" | ") || "Không thể nhập dữ liệu.");
     }
   };
 
@@ -275,6 +293,29 @@ function SessionForm({ campuses, sessions, latestYear, onCreated }) {
               <div className="text-muted-foreground mt-0.5">
                 {done.students} học sinh · {done.fitness} kết quả thể lực · {done.anthropometric} thể trạng
                 {done.skipped > 0 ? ` · ${done.skipped} dòng trống đã bỏ qua` : ""}
+                {done.perFile?.length > 1 && (
+                  <ul className="mt-2 space-y-0.5 text-xs">
+                    {done.perFile.map((x) => (
+                      <li key={x.name}>{x.name}: {x.students} học sinh</li>
+                    ))}
+                  </ul>
+                )}
+                {done.warnings?.length > 0 && (
+                  <p className="mt-2 text-xs text-amber-700">{done.warnings.length} giá trị ngoài khoảng hợp lệ đã được bỏ trống: {done.warnings.slice(0, 3).join("; ")}{done.warnings.length > 3 ? "…" : ""}</p>
+                )}
+                {done.failed?.length > 0 && (
+                  <div className="mt-2 rounded-lg bg-rose-50 px-3 py-2 text-xs text-rose-800">
+                    <p className="font-semibold">Chưa nhập được {done.failed.length} file:</p>
+                    <ul className="mt-1 space-y-0.5">
+                      {done.failed.map((x) => (
+                        <li key={x.name}>{x.name}: {x.message}</li>
+                      ))}
+                    </ul>
+                    <button type="button" onClick={() => setDone(null)} className="mt-2 rounded-md bg-navy px-3 py-1 font-semibold text-white">
+                      Nhập tiếp
+                    </button>
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -325,8 +366,9 @@ function SessionForm({ campuses, sessions, latestYear, onCreated }) {
               ref={inputRef}
               type="file"
               accept=".xlsx,.xls"
+              multiple
               className="hidden"
-              onChange={(e) => setFile(e.target.files?.[0])}
+              onChange={(e) => setFiles(Array.from(e.target.files || []))}
             />
             <button
               type="button"
@@ -334,8 +376,15 @@ function SessionForm({ campuses, sessions, latestYear, onCreated }) {
               disabled={busy}
               className="fg-btn-secondary w-full flex items-center justify-center gap-2 px-4 h-11 text-sm disabled:opacity-60"
             >
-              <UploadCloud className="w-4 h-4" /> {file ? file.name : "Chọn file Excel (.xlsx)"}
+              <UploadCloud className="w-4 h-4" /> {files.length === 0 ? "Chọn file Excel (.xlsx, .xls), chọn được nhiều file" : files.length === 1 ? files[0].name : `${files.length} file đã chọn`}
             </button>
+            {files.length > 1 && (
+              <ul className="mt-2 flex flex-wrap gap-1.5" aria-label="Các file đã chọn">
+                {files.map((x) => (
+                  <li key={x.name} className="rounded-lg bg-white px-2 py-1 text-xs font-medium text-navy ring-1 ring-[rgba(38,39,93,0.12)]">{x.name}</li>
+                ))}
+              </ul>
+            )}
             <p className="mt-2 text-xs leading-relaxed text-muted-foreground">
               Cột FitnessGram: Tên học sinh, Giới tính, Ngày sinh, Chiều Cao, Cân nặng, Pacer, Sit and Reach, Push-up, Plank. Cột Bộ GD&ĐT (nếu có): Bật xa tại chỗ, Chạy tùy sức 5 phút, Nằm ngửa gập bụng, Chạy 30m (thêm Lực bóp tay, Chạy con thoi 4x10m nếu đo).
             </p>
@@ -344,10 +393,10 @@ function SessionForm({ campuses, sessions, latestYear, onCreated }) {
           <div className="flex flex-col sm:flex-row gap-2 mt-4">
             <button
               onClick={runImport}
-              disabled={busy || !canCreate || !file}
+              disabled={busy || !canCreate || !files.length}
               className="fg-btn-primary flex-1 h-11 flex items-center justify-center gap-2 disabled:opacity-60"
             >
-              {busy ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang xử lý...</> : <><UploadCloud className="w-4 h-4" /> Tạo đợt & Nhập dữ liệu</>}
+              {busy ? <><Loader2 className="w-4 h-4 animate-spin" /> Đang xử lý{progress ? ` ${progress}` : "..."}</> : <><UploadCloud className="w-4 h-4" /> Tạo đợt & Nhập dữ liệu</>}
             </button>
             <button
               onClick={createOnly}

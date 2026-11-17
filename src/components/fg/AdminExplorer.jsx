@@ -245,11 +245,12 @@ function StudentResults({ studentId }) {
             sit_and_reach_cm: f.sit_and_reach_cm,
             pushup_count: f.pushup_count,
             plank_seconds: f.plank_seconds,
+            ...Object.fromEntries(MOET_TESTS.map((t) => [t.field, f[t.field]])),
             height_cm: a.height_cm,
             weight_kg: a.weight_kg,
             bmi: a.bmi,
           };
-        }).filter((r) => r.pacer_laps != null || r.pushup_count != null || r.sit_and_reach_cm != null || r.plank_seconds != null || r.height_cm != null);
+        }).filter((r) => r.pacer_laps != null || r.pushup_count != null || r.sit_and_reach_cm != null || r.plank_seconds != null || r.height_cm != null || MOET_TESTS.some((t) => r[t.field] != null));
         setRows(merged);
       } finally {
         setLoading(false);
@@ -275,14 +276,21 @@ function StudentResults({ studentId }) {
             <span className="text-xs font-semibold text-muted-foreground">{formatDate(r.date)}</span>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-            <Metric label="Lượt" value={r.pacer_laps} />
-            <Metric label="Level" value={r.pacer_level} />
-            <Metric label="Sit & Reach (cm)" value={r.sit_and_reach_cm} />
-            <Metric label="Push-up (lần)" value={r.pushup_count} />
-            <Metric label="Plank" value={r.plank_seconds != null ? formatPlankTime(r.plank_seconds) : null} />
-            <Metric label="BMI" value={r.bmi != null ? Number(r.bmi).toFixed(2) : null} />
-            <Metric label="Chiều cao (cm)" value={r.height_cm} />
-            <Metric label="Cân nặng (kg)" value={r.weight_kg} />
+            {[
+              ["Lượt", r.pacer_laps],
+              ["Level", r.pacer_level],
+              ["Sit & Reach (cm)", r.sit_and_reach_cm],
+              ["Push-up (lần)", r.pushup_count],
+              ["Plank", r.plank_seconds != null ? formatPlankTime(r.plank_seconds) : null],
+              ...MOET_TESTS.map((t) => [`${t.label} (${t.unit})`, r[t.field]]),
+              ["BMI", r.bmi != null ? Number(r.bmi).toFixed(2) : null],
+              ["Chiều cao (cm)", r.height_cm],
+              ["Cân nặng (kg)", r.weight_kg],
+            ]
+              .filter(([, v]) => v != null)
+              .map(([label, v]) => (
+                <Metric key={label} label={label} value={v} />
+              ))}
           </div>
         </div>
       ))}

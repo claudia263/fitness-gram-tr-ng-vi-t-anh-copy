@@ -12,6 +12,9 @@ import FitnessDetailModal from "@/components/fg/FitnessDetailModal";
 import HealthAdvice from "@/components/fg/HealthAdvice";
 import NormsComparison from "@/components/fg/NormsComparison";
 import ExportResultsButton from "@/components/fg/ExportResultsButton";
+import MoetResultCard from "@/components/fg/MoetResultCard";
+import MoetHistory from "@/components/fg/MoetHistory";
+import { hasMoetData } from "@/lib/moetNorms";
 import { Calendar } from "lucide-react";
 import { sessionDateRange } from "@/lib/campus";
 
@@ -48,7 +51,8 @@ export default function StudentResultsView({ student, onNameClick }) {
     latestFitness.sit_and_reach_cm != null || latestFitness.pushup_count != null ||
     latestFitness.plank_seconds != null
   );
-  const hasAnyData = hasFitnessData || latestAnthro != null;
+  const hasMoet = fitnessRows.some(hasMoetData);
+  const hasAnyData = hasFitnessData || latestAnthro != null || hasMoet;
 
   return (
     <div className="mt-6">
@@ -76,7 +80,7 @@ export default function StudentResultsView({ student, onNameClick }) {
         </div>
       ) : (
         <>
-          <SectionTitle title="Kết quả Fitness Gram" subtitle="4 bài kiểm tra thể lực chính" />
+          {(loading || hasFitnessData || !hasMoet) && <SectionTitle title="Kết quả Fitness Gram" subtitle="4 bài kiểm tra thể lực chính" />}
           {loading ? (
             <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 mb-6">
               {[0, 1, 2, 3].map((i) => <SkeletonCard key={i} />)}
@@ -88,10 +92,11 @@ export default function StudentResultsView({ student, onNameClick }) {
               <FitnessCard testKey="pushup" current={latestFitness.pushup_count} previous={prevFitness?.pushup_count} delay={0.5} onOpen={() => setOpenTest("pushup")} />
               <FitnessCard testKey="plank" current={latestFitness.plank_seconds} previous={prevFitness?.plank_seconds} delay={0.6} onOpen={() => setOpenTest("plank")} />
             </div>
-          ) : (
+          ) : hasMoet ? null : (
             <EmptyState className="mb-6" />
           )}
 
+          {(loading || hasFitnessData || latestAnthro || !hasMoet) && (
           <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
             <div className="lg:col-span-3">
               {loading ? (
@@ -110,12 +115,20 @@ export default function StudentResultsView({ student, onNameClick }) {
               )}
             </div>
           </div>
+          )}
         </>
       )}
 
-      {!loading && hasAnyData && <NormsComparison student={student} fitness={latestFitness} anthro={latestAnthro} />}
+      {!loading && hasMoet && (
+        <div className="mb-6 space-y-4">
+          <MoetResultCard student={student} fitnessRows={fitnessRows} />
+          <MoetHistory student={student} fitnessRows={fitnessRows} />
+        </div>
+      )}
 
-      {!loading && (latestAnthro || latestFitness) && (
+      {!loading && (hasFitnessData || latestAnthro) && <NormsComparison student={student} fitness={latestFitness} anthro={latestAnthro} />}
+
+      {!loading && (latestAnthro || hasFitnessData) && (
         <HealthAdvice anthro={latestAnthro} fitness={latestFitness} sex={student?.sex} />
       )}
 
@@ -145,7 +158,9 @@ export default function StudentResultsView({ student, onNameClick }) {
                     <div className="text-sm font-semibold text-navy">{s.name || "Đợt kiểm tra"}</div>
                     <div className="text-xs text-muted-foreground">{sessionDateRange(s)}</div>
                   </div>
-                  {r ? (
+                  {r && hasMoetData(r) && r.pacer_level == null && r.sit_and_reach_cm == null && r.pushup_count == null && r.plank_seconds == null ? (
+                    <span className="text-xs text-muted-foreground">Chuẩn Bộ GD&ĐT · đã có kết quả</span>
+                  ) : r ? (
                     <div className="flex flex-wrap gap-x-4 gap-y-1 justify-end text-xs text-muted-foreground">
                       <span><b className="text-navy">{r.pacer_level ?? "--"}</b> PACER</span>
                       <span><b className="text-navy">{r.sit_and_reach_cm ?? "--"}</b> cm</span>

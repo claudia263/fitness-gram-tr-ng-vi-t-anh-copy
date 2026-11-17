@@ -22,7 +22,8 @@ export async function importFitnessExcel(file, opts = {}, entities) {
   const wb = XLSX.read(buf, { cellDates: false });
 
   // 2. Tạo (hoặc dùng lại) đợt kiểm tra của cơ sở này — tìm theo tên + cơ sở để 2 cơ sở cùng tên đợt không nhập lẫn
-  const existingSessions = await base44.entities.TestSession.filter({ name: sessionName, campus });
+  const nameKey = (v) => String(v || '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/gi, 'd').toLowerCase().replace(/\s+/g, ' ').trim();
+  const existingSessions = (await base44.entities.TestSession.filter({ campus })).filter((s) => nameKey(s.name) === nameKey(sessionName));
   let sessionId;
   if (existingSessions && existingSessions.length > 0) {
     sessionId = existingSessions[0].id;

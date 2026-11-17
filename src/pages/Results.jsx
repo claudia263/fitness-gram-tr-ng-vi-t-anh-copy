@@ -9,6 +9,7 @@ import EmptyState from "@/components/fg/EmptyState";
 import SkeletonCard from "@/components/fg/SkeletonCard";
 import FitnessDetailModal from "@/components/fg/FitnessDetailModal";
 import MoetResultCard from "@/components/fg/MoetResultCard";
+import MoetHistory from "@/components/fg/MoetHistory";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Legend, Cell } from "recharts";
 
 const TESTS = [
@@ -24,6 +25,7 @@ export default function Results() {
   const [openTest, setOpenTest] = useState(null);
 
   const fitnessRows = data?.fitnessRows || [];
+  const hasFG = TESTS.some((t) => fitnessRows.some((r) => r[t.field] != null));
   const anthroRows = (data?.anthroRows || []).map((a) => enrichAnthro(a, activeStudent?.birth_date, activeStudent?.sex));
 
   if (loadingStudents || loading) {
@@ -52,7 +54,7 @@ export default function Results() {
 
         {fitnessRows.length === 0 ? (
           <EmptyState />
-        ) : (
+        ) : !hasFG ? null : (
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-6">
             {TESTS.map((t) => {
               const rows = fitnessRows.filter((r) => r[t.field] != null);
@@ -110,6 +112,10 @@ export default function Results() {
 
         <div className="mb-6">
           <MoetResultCard student={activeStudent} fitnessRows={fitnessRows} />
+        </div>
+
+        <div className="mb-6">
+          <MoetHistory student={activeStudent} fitnessRows={fitnessRows} />
         </div>
 
         {/* Growth trends */}
