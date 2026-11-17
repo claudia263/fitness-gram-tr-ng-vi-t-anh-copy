@@ -13,6 +13,8 @@ import { useCampusScope } from "@/lib/campusScope";
 import { LEVELS, levelOfGrade } from "@/lib/clubs/model";
 import { Users, School, ClipboardList, Plus, Loader2, CheckCircle2, UploadCloud, AlertCircle, FileSpreadsheet, ClipboardCheck, Pencil } from "lucide-react";
 
+const isVietAnh = (r) => (r.school || 'vietanh') === 'vietanh';
+
 export default function AdminDashboard() {
   const [allStudents, setStudents] = useState([]);
   const [allClasses, setClasses] = useState([]);
@@ -33,9 +35,9 @@ export default function AdminDashboard() {
     ]);
     const m = {};
     [...fi, ...an].forEach((r) => (m[r.session_id] = m[r.session_id] || new Set()).add(r.student_id));
-    setStudents(st);
-    setClasses(cl.sort((a, b) => campusLabel(a.campus).localeCompare(campusLabel(b.campus), "vi") || (Number(a.grade) || 0) - (Number(b.grade) || 0) || (a.name || "").localeCompare(b.name || "")));
-    setSessions(se);
+    setStudents(st.filter(isVietAnh));
+    setClasses(cl.filter(isVietAnh).sort((a, b) => campusLabel(a.campus).localeCompare(campusLabel(b.campus), "vi") || (Number(a.grade) || 0) - (Number(b.grade) || 0) || (a.name || "").localeCompare(b.name || "")));
+    setSessions(se.filter(isVietAnh));
     setMeasured(m);
     setLoading(false);
   };

@@ -30,8 +30,9 @@ export default function TeacherDashboard() {
           base44.entities.Class.list(null, 50),
           base44.entities.TestSession.list("-test_date", 50),
         ]);
-        setClasses(cls);
-        setSessions(sess);
+        // Trang Việt Anh chỉ hiện dữ liệu Việt Anh (Mê Kông Xanh nằm ở trang /mgis)
+        setClasses(cls.filter((c) => (c.school || 'vietanh') === 'vietanh'));
+        setSessions(sess.filter((s) => (s.school || 'vietanh') === 'vietanh'));
       } finally {
         setLoading(false);
       }

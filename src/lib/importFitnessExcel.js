@@ -13,6 +13,8 @@ export async function importFitnessExcel(file, opts = {}, entities) {
   const semester = opts.semester || 'Học kỳ II';
   const notes = opts.notes || 'Import tự động từ file Excel';
   const roundNo = opts.round_no ?? null;
+  // Trường (nhiều trường dùng chung hệ thống). Việt Anh là mặc định nên không gửi cột `school` (chạy được cả khi chưa có migration 0012).
+  const schoolExtra = opts.school && opts.school !== 'vietanh' ? { school: opts.school } : {};
   const endDate = opts.end_date || null;
 
   // 1. Đọc workbook
@@ -34,6 +36,7 @@ export async function importFitnessExcel(file, opts = {}, entities) {
       semester,
       school_year: schoolYear,
       notes,
+      ...schoolExtra,
     });
     sessionId = session.id;
   }
@@ -73,7 +76,10 @@ export async function importFitnessExcel(file, opts = {}, entities) {
     const col = (name) => header.findIndex((h) => String(h || '').includes(name));
 
     // "Tên" khớp cả "Tên học sinh" và "Họ Tên" (sheet 4OIC)
-    const iName = col('Tên') >= 0 ? col('Tên') : header.findIndex((h) => /họ (và )?tên/i.test(String(h || '')));
+    const exactName = header.findIndex((h) => /^\s*(họ (và )?tên|tên học sinh)\s*$/i.test(String(h || '')));
+    const iName = exactName >= 0 ? exactName : header.findIndex((h) => String(h || '').includes('Tên') && !/lớp/i.test(String(h || '')));
+    // File xuất từ phần mềm (một sheet cho nhiều lớp): có cột "Tên lớp". Chỉ lấy họ tên, giới tính, ngày sinh và kết quả các bài test; không lưu mã định danh.
+    const iClass = header.findIndex((h) => /^\s*tên lớp\s*$/i.test(String(h || '')));
     const iSex = col('Giới tính');
     const iBirth = col('Ngày sinh');
     const iHeight = col('Chiều Cao');
@@ -83,40 +89,54 @@ export async function importFitnessExcel(file, opts = {}, entities) {
     const iPushup = col('Push-up');
     const iPlank = col('Plank');
     // Bài test Bộ GD&ĐT (QĐ 53): chỉ ghi các cột có trong sheet
-    if (iName < 0) continue;
+    // Bỏ qua sheet không phải danh sách học sinh (vd sheet hướng dẫn): phải có cột giới tính hoặc ngày sinh
+    if (iName < 0 || (iSex < 0 && iBirth < 0)) continue;
 
     const cleanSheet = String(sheetName).trim();
     const grade = (cleanSheet.match(/^[0-9]+/) || ['0'])[0];
     // Lớp 1–5 đo con thoi 4×10m nhưng bảng tính ghi nhầm tên cột "Chạy 30m": ghi vào con thoi
     const moetCols = MOET_COLUMNS.map((m) => ({ ...m, i: header.findIndex((h) => m.match.test(plain(h))) }))
       .filter((m) => m.i >= 0)
-      .map((m) => (m.field === 'sprint_30m_s' && Number(grade) >= 1 && Number(grade) <= 5 ? { ...m, field: 'shuttle_4x10_s' } : m));
+      .map((m) => (iClass < 0 && m.field === 'sprint_30m_s' && Number(grade) >= 1 && Number(grade) <= 5 ? { ...m, field: 'shuttle_4x10_s' } : m));
     // Nếu sheet đã có cột con thoi riêng thì không chuyển nhầm (tránh ghi đè)
     if (new Set(moetCols.map((m) => m.field)).size !== moetCols.length) {
       moetCols.forEach((m) => { if (m.field === 'shuttle_4x10_s' && /chay 30/.test(plain(header[m.i]))) m.field = 'sprint_30m_s'; });
     }
 
-    // Ensure class exists
-    let classId = classMap.get(`${cleanSheet}|${schoolYear}|${campus}`);
-    if (!classId) {
-      const created = await base44.entities.Class.create({
-        name: cleanSheet,
-        grade,
-        campus,
-        school_year: schoolYear,
-      });
-      classId = created.id;
-      classMap.set(`${cleanSheet}|${schoolYear}|${campus}`, classId);
-    }
+    // Lớp: tạo khi chưa có (theo tên sheet, hoặc theo cột "Tên lớp" ở từng dòng)
+    const ensureClass = async (className, classGrade) => {
+      let id = classMap.get(`${className}|${schoolYear}|${campus}`);
+      if (!id) {
+        const created = await base44.entities.Class.create({
+          name: className,
+          grade: classGrade,
+          campus,
+          school_year: schoolYear,
+          ...schoolExtra,
+        });
+        id = created.id;
+        classMap.set(`${className}|${schoolYear}|${campus}`, id);
+      }
+      return id;
+    };
+    const sheetClassId = iClass < 0 ? await ensureClass(cleanSheet, grade) : null;
 
     for (let r = 1; r < rows.length; r++) {
       const row = rows[r];
       const name = row[iName] ? String(row[iName]).trim() : '';
       if (!name) continue;
+      let classId = sheetClassId;
+      let rowGrade = grade;
+      if (iClass >= 0) {
+        const className = String(row[iClass] ?? '').trim();
+        if (!className) continue;
+        rowGrade = (className.match(/^[0-9]+/) || ['0'])[0];
+        classId = await ensureClass(className, rowGrade);
+      }
 
       const sexRaw = row[iSex] ? String(row[iSex]).trim().toLowerCase() : '';
       const sex = sexRaw.includes('ữ') ? 'female' : 'male';
-      const birthDate = parseBirthDate(row[iBirth], grade);
+      const birthDate = parseBirthDate(row[iBirth], rowGrade);
 
       const key = normKey(name, classId);
       let studentId = studentMap.get(key);
@@ -127,9 +147,10 @@ export async function importFitnessExcel(file, opts = {}, entities) {
           sex,
           birth_date: birthDate,
           class_id: classId,
-          grade,
+          grade: rowGrade,
           campus,
           school_year: schoolYear,
+          ...schoolExtra,
           _key: key,
         });
       } else {
