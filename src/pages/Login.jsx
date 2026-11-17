@@ -52,6 +52,18 @@ export default function Login({ staff = false }) {
   const Shell = IS_MAIN_SCHOOL ? LoginVisual : LoginVisualSport;
   const ParentForm = IS_MAIN_SCHOOL ? LoginForm : LoginFormSport;
 
+  // Nút lối vào cán bộ / về trang phụ huynh ở góc trên bên phải (chỉ khung thể thao của MGIS, từ màn hình vừa trở lên)
+  const pillCls = "hidden h-10 shrink-0 items-center rounded-full border border-white/35 px-4 text-sm font-semibold text-white transition hover:bg-white/10 sm:inline-flex";
+  const headerAction = IS_MAIN_SCHOOL ? null : staff ? (
+    <Link to="/login?phu-huynh=1" onClick={() => sessionStorage.removeItem("fg_google_login")} className={pillCls}>
+      ← Trang phụ huynh
+    </Link>
+  ) : (
+    <Link to={STAFF_LOGIN_PATH} className={pillCls}>
+      Giáo viên, cán bộ nhà trường
+    </Link>
+  );
+
   const enterResults = () => {
     setLeaving(true);
     setTimeout(() => navigate("/"), 300);
@@ -88,6 +100,7 @@ export default function Login({ staff = false }) {
         className="absolute inset-0"
       >
         <Shell
+          headerAction={headerAction}
           formOpen
           title={staff ? "Cổng làm việc dành cho cán bộ nhà trường" : undefined}
           subtitle={staff ? "Đăng nhập bằng tài khoản của nhà trường để quản lý dữ liệu thể chất và câu lạc bộ." : undefined}
@@ -151,7 +164,7 @@ export default function Login({ staff = false }) {
               <Link
                 to="/login?phu-huynh=1"
                 onClick={() => sessionStorage.removeItem("fg_google_login")}
-                className="mt-3 block text-center text-xs font-semibold hover:underline"
+                className={`mt-3 block text-center text-xs font-semibold hover:underline ${IS_MAIN_SCHOOL ? "" : "sm:hidden"}`}
                 style={{ color: "rgba(255,255,255,0.8)" }}
               >
                 ← Về trang phụ huynh / học sinh
@@ -159,7 +172,7 @@ export default function Login({ staff = false }) {
             ) : (
               <Link
                 to={STAFF_LOGIN_PATH}
-                className="mt-5 flex h-12 w-full items-center justify-center rounded-xl text-sm font-semibold text-white transition hover:bg-white/10"
+                className={`mt-5 flex h-12 w-full items-center justify-center rounded-xl text-sm font-semibold text-white transition hover:bg-white/10 ${IS_MAIN_SCHOOL ? "" : "sm:hidden"}`}
                 style={{ border: "1px solid rgba(255,255,255,0.35)" }}
               >
                 Giáo viên, cán bộ nhà trường? Đăng nhập tại đây
